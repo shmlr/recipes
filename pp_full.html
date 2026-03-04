@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ПП Рецепты — Планировщик калорий</title>
+<style>
+/* === SYSTEM FONTS — no external dependencies, works offline and in Russia === */
+:root{
+  --font-serif: Georgia, "Times New Roman", "PT Serif", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "PT Sans", sans-serif;
+}
+:root{
+  --ink:#1a1a18;--cream:#faf7f2;--sage:#4a7c59;--sage-light:#7aab89;
+  --sage-pale:#eef5f0;--amber:#c8833a;--amber-pale:#fdf3e7;
+  --red:#d94f3d;--muted:#7a7a72;--border:#e8e4dc;--white:#fff;
+  --blue:#3a6fa8;--blue-pale:#e8f0f8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--cream);color:var(--ink);overflow-x:hidden}
+
+/* ── TOP BAR ── */
+.topbar{position:sticky;top:0;z-index:200;background:var(--ink);height:54px;display:flex;align-items:center;gap:8px;padding:0 20px;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.logo{font-family:var(--font-serif);color:#fff;font-size:16px;font-weight:700;white-space:nowrap;margin-right:6px}
+.nav-scroll{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
+.nav-scroll::-webkit-scrollbar{display:none}
+.nav-btn{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;color:#b7e4c7;cursor:pointer;border:none;background:transparent;transition:all .2s;white-space:nowrap}
+.nav-btn:hover,.nav-btn.on{background:var(--sage);color:#fff}
+.planner-toggle{flex-shrink:0;margin-left:6px;padding:6px 14px;border-radius:20px;background:var(--amber);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;position:relative}
+.planner-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;display:none}
+
+/* ── PAGES ── */
+.page{display:none;min-height:calc(100vh - 54px)}
+.page.on{display:block}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,#0d2b1f 0%,#1b4332 50%,#2d6a4f 100%);padding:60px 24px 80px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(82,183,136,.15) 0%,transparent 70%)}
+.hero-chip{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#d8f3dc;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:20px}
+.hero h1{font-family:var(--font-serif);font-size:clamp(36px,6vw,68px);color:#fff;font-weight:900;line-height:1.05;margin-bottom:14px}
+.hero h1 em{color:#95d5b2;font-style:italic}
+.hero-sub{color:#b7e4c7;font-size:16px;max-width:500px;margin:0 auto 32px;font-weight:300;line-height:1.6}
+.hero-stats{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.hs{background:rgba(255,255,255,.1);border-radius:10px;padding:12px 20px;text-align:center}
+.hs b{display:block;font-size:24px;font-weight:800;color:#95d5b2}
+.hs span{font-size:11px;color:#b7e4c7}
+
+/* ── PLANNER PANEL ── */
+.planner-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:flex-end;justify-content:center}
+.planner-overlay.open{display:flex}
+.planner-panel{background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:560px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.planner-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.planner-head h3{font-family:var(--font-serif);font-size:20px;font-weight:700}
+.planner-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)}
+
+/* NORM INPUT */
+.norm-section{padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0}
+.norm-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.norm-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.norm-preset{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;background:transparent;color:var(--ink)}
+.norm-preset:hover,.norm-preset.on{background:var(--sage);border-color:var(--sage);color:#fff}
+.norm-custom{display:flex;align-items:center;gap:10px}
+.norm-input{border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;width:100px;font-family:inherit;outline:none;transition:border-color .2s}
+.norm-input:focus{border-color:var(--sage)}
+.norm-hint{font-size:12px;color:var(--muted)}
+
+/* PROGRESS BAR */
+.progress-section{padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0}
+.progress-nums{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.progress-current{font-size:28px;font-weight:800;color:var(--ink)}
+.progress-current span{font-size:14px;font-weight:400;color:var(--muted)}
+.progress-norm{font-size:13px;color:var(--muted)}
+.progress-bar-wrap{background:var(--border);border-radius:10px;height:10px;overflow:hidden;margin-bottom:8px}
+.progress-bar{height:100%;border-radius:10px;background:var(--sage);transition:width .4s ease}
+.progress-bar.over{background:var(--red)}
+.progress-bar.near{background:var(--amber)}
+.progress-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.pm-box{background:var(--sage-pale);border-radius:8px;padding:8px;text-align:center}
+.pm-val{font-size:16px;font-weight:700;color:var(--sage)}
+.pm-lbl{font-size:10px;color:var(--muted);text-transform:uppercase}
+
+/* PLANNER ITEMS */
+.planner-items{flex:1;overflow-y:auto;padding:16px 24px}
+.planner-empty{text-align:center;padding:32px;color:var(--muted);font-size:14px}
+.planner-empty span{display:block;font-size:36px;margin-bottom:8px}
+.pi{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.pi:last-child{border-bottom:none}
+.pi-num{background:var(--sage-pale);color:var(--sage);font-size:10px;font-weight:700;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pi-info{flex:1}
+.pi-title{font-size:13px;font-weight:600;color:var(--ink);line-height:1.3}
+.pi-kcal{font-size:12px;color:var(--muted)}
+.pi-remove{background:none;border:none;cursor:pointer;color:var(--border);font-size:18px;transition:color .15s;flex-shrink:0}
+.pi-remove:hover{color:var(--red)}
+
+/* ── FILTER BAR ── */
+.filter-wrap{background:var(--white);border-bottom:1px solid var(--border);padding:20px 24px;position:sticky;top:54px;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.filter-row{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+
+/* SEARCH */
+.search-box{position:relative;max-width:340px}
+.search-box input{width:100%;padding:9px 36px 9px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:var(--cream);transition:border-color .2s}
+.search-box input:focus{border-color:var(--sage)}
+.search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none}
+
+/* FILTER CHIPS */
+.filter-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fc-group{display:flex;gap:6px;flex-wrap:wrap}
+.fc-sep{width:1px;height:24px;background:var(--border);flex-shrink:0}
+.fchip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;background:transparent;color:var(--ink);white-space:nowrap}
+.fchip:hover{border-color:var(--sage-light);color:var(--sage)}
+.fchip.on{background:var(--sage);border-color:var(--sage);color:#fff}
+.fchip.on-amber{background:var(--amber);border-color:var(--amber);color:#fff}
+
+/* CALORIE SLIDER */
+.cal-filter{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.cal-label{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}
+.range-wrap{position:relative;width:200px;height:24px;flex-shrink:0}
+.range-track{position:absolute;top:50%;left:0;right:0;height:4px;background:var(--border);border-radius:2px;transform:translateY(-50%)}
+.range-fill{position:absolute;top:50%;height:4px;background:var(--sage);border-radius:2px;transform:translateY(-50%)}
+.range-wrap input[type=range]{position:absolute;width:100%;height:100%;opacity:0;cursor:pointer;top:0;left:0;margin:0;pointer-events:none}
+.range-wrap input[type=range]::-webkit-slider-thumb{pointer-events:all;width:16px;height:16px;border-radius:50%;background:var(--sage);cursor:pointer;-webkit-appearance:none;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.range-min{pointer-events:all!important}
+.cal-vals{font-size:12px;font-weight:600;color:var(--sage);background:var(--sage-pale);padding:4px 10px;border-radius:12px;white-space:nowrap}
+.filter-count{font-size:12px;color:var(--muted);white-space:nowrap}
+
+/* ── RECIPE GRID ── */
+.recipes-section{max-width:1100px;margin:0 auto;padding:24px 20px 80px}
+.results-info{font-size:13px;color:var(--muted);margin-bottom:16px}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.no-results{text-align:center;padding:60px 20px;color:var(--muted)}
+.no-results span{display:block;font-size:48px;margin-bottom:12px}
+
+/* ── RECIPE CARD ── */
+.rc{background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.07);display:flex;flex-direction:column;transition:box-shadow .25s,transform .25s}
+.rc:hover{box-shadow:0 8px 24px rgba(0,0,0,.12);transform:translateY(-2px)}
+.rc.hidden{display:none}
+.rc-accent{height:4px}
+.rc-head{padding:14px 16px 10px;display:flex;gap:10px;align-items:flex-start}
+.rc-num{background:var(--sage-pale);color:var(--sage);font-weight:800;font-size:10px;min-width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.rc-title{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.3}
+.rc-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.kbzhu{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+.ki{background:var(--white);text-align:center;padding:7px 3px}
+.kv{font-size:14px;font-weight:800;color:var(--ink)}
+.kl{font-size:8.5px;color:var(--sage-light);text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.ki:first-child .kv{color:var(--amber)}
+.rc-body{padding:12px 16px;flex:1;display:flex;flex-direction:column;gap:8px;font-size:12px}
+.ingr-box{background:#f8fdf9;border-radius:6px;padding:7px 10px;color:#444;line-height:1.5}
+.lbl{font-size:9.5px;font-weight:700;color:var(--sage-light);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.steps-txt{color:#555;line-height:1.6}
+.tip-box{background:linear-gradient(90deg,var(--sage-pale),#f8fdf9);border-radius:6px;padding:7px 10px;color:var(--sage);font-style:italic}
+.sub-box{background:#fffbf0;border:1px dashed var(--amber);border-radius:6px;padding:6px 10px;color:#7c5c20}
+.mealprep-box{background:linear-gradient(90deg,#e8f5e9,#f1f8e9);border-radius:8px;padding:8px 12px;display:flex;align-items:flex-start;gap:10px;border-left:3px solid #4caf50}
+.mealprep-box.mp-fresh{background:linear-gradient(90deg,#fff8e1,#fffde7);border-left-color:var(--amber)}
+.mp-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.mp-title{font-size:9.5px;font-weight:700;color:#2e7d32;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.mealprep-box.mp-fresh .mp-title{color:#e65100}
+.mp-row{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:#444;font-weight:500}
+.rc-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.badge{padding:3px 8px;border-radius:10px;font-weight:600;font-size:10px}
+.bs{background:#fce4ec;color:#c2185b}
+.bc{background:var(--sage-pale);color:var(--sage)}
+.meal-tag{background:var(--blue-pale);color:var(--blue)}
+.add-btn{margin-left:auto;padding:6px 14px;background:var(--sage);color:#fff;border:none;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;flex-shrink:0}
+.add-btn:hover{background:var(--sage-light)}
+.add-btn.added{background:var(--amber);cursor:default}
+.cal-chip{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.65);color:#fff;border-radius:20px;padding:3px 9px;font-size:10px;font-weight:700}
+
+/* ── GOAL BANNER ── */
+.goal-banner{margin:0 auto 16px;max-width:1100px;padding:0 20px}
+.goal-box{background:linear-gradient(90deg,var(--ink),#2d3a30);border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.goal-text{color:#fff;font-size:13px;flex:1}
+.goal-text strong{color:#95d5b2}
+.goal-btns{display:flex;gap:8px}
+.goal-btn{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:none}
+.goal-btn-open{background:#95d5b2;color:var(--ink)}
+.goal-btn-dismiss{background:rgba(255,255,255,.1);color:#fff}
+
+/* ── OTHER PAGES ── */
+.page-content{max-width:900px;margin:0 auto;padding:40px 20px 80px}
+.sh{background:linear-gradient(90deg,var(--ink),#2d3a30);color:#fff;text-align:center;padding:28px 20px;margin-bottom:28px}
+.sh h2{font-family:var(--font-serif);font-size:clamp(18px,3vw,26px);font-weight:700}
+.sh p{opacity:.75;font-size:13px;margin-top:5px}
+table.ct{width:100%;border-collapse:collapse;font-size:12.5px}
+.ct th{background:var(--sage);color:#fff;padding:9px 12px;text-align:left;font-size:11.5px}
+.ct td{padding:8px 12px;border-bottom:1px solid var(--sage-pale);vertical-align:top}
+.ct tr:nth-child(even) td{background:#f8fdf9}
+.effect{color:var(--sage);font-weight:600}
+.spice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.sc{background:var(--white);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid var(--ci,#52b788)}
+.sc-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.sc-orig{font-size:10px;color:var(--sage-light);font-weight:600;margin-bottom:8px}
+.sc-body{font-size:12px;color:#555;line-height:1.6}
+.sp{display:inline-block;background:var(--sage-pale);color:var(--sage);font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600;margin:2px 2px 0 0}
+.rules-box{background:var(--ink);border-radius:12px;padding:18px 20px;color:#d8f3dc;font-size:12.5px;line-height:1.8;margin-top:20px}
+
+@media(max-width:600px){
+  .rgrid{grid-template-columns:1fr}
+  .filter-wrap{padding:14px 16px}
+  .range-wrap{width:140px}
+  .hero{padding:40px 16px 60px}
+}
+@media(min-width:1200px){
+  .rgrid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="logo">ПП×50</span>
+  <div class="nav-scroll">
+    <button class="nav-btn on" onclick="go('recipes',this)">🥗 Рецепты</button>
+    <button class="nav-btn" onclick="go('compat',this)">⚗️ Совместимость</button>
+    <button class="nav-btn" onclick="go('spices',this)">🌶️ Специи</button>
+    <button class="nav-btn" onclick="go('temps',this)">🌡️ Температуры</button>
+  </div>
+  <button class="planner-toggle" onclick="openPlanner()">
+    📋 Мой день
+    <div class="planner-badge" id="pBadge">0</div>
+  </button>
+</div>
+
+<!-- PLANNER OVERLAY -->
+<div class="planner-overlay" id="plannerOverlay" onclick="closePlannerOutside(event)">
+  <div class="planner-panel">
+    <div class="planner-head">
+      <h3>📋 Планировщик дня</h3>
+      <button class="planner-close" onclick="closePlanner()">×</button>
+    </div>
+    <div class="norm-section">
+      <div class="norm-label">Моя дневная норма калорий</div>
+      <div class="norm-presets">
+        <button class="norm-preset" onclick="setNorm(1200,this)">1200<br><small>похудение</small></button>
+        <button class="norm-preset" onclick="setNorm(1500,this)">1500<br><small>дефицит</small></button>
+        <button class="norm-preset on" onclick="setNorm(1800,this)">1800<br><small>поддержание</small></button>
+        <button class="norm-preset" onclick="setNorm(2200,this)">2200<br><small>набор</small></button>
+      </div>
+      <div class="norm-custom">
+        <input type="number" class="norm-input" id="normInput" value="1800" min="800" max="4000" oninput="setNormCustom(this.value)">
+        <span class="norm-hint">ккал / день</span>
+      </div>
+    </div>
+    <div class="progress-section">
+      <div class="progress-nums">
+        <div class="progress-current" id="pCurrent">0 <span>ккал</span></div>
+        <div class="progress-norm" id="pNorm">из 1800 ккал</div>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="pBar" style="width:0%"></div></div>
+      <div style="font-size:12px;color:var(--muted)" id="pRemain">Ещё 1800 ккал</div>
+      <div class="progress-macros">
+        <div class="pm-box"><div class="pm-val" id="pProt">0г</div><div class="pm-lbl">Белки</div></div>
+        <div class="pm-box"><div class="pm-val" id="pFat">0г</div><div class="pm-lbl">Жиры</div></div>
+        <div class="pm-box"><div class="pm-val" id="pCarb">0г</div><div class="pm-lbl">Углев.</div></div>
+      </div>
+    </div>
+    <div class="planner-items" id="plannerItems">
+      <div class="planner-empty"><span>🍽️</span>Добавь блюда из каталога</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RECIPES PAGE ═══ -->
+<div class="page on" id="recipes">
+
+  <div class="hero">
+    <div class="hero-chip">50 рецептов · КБЖУ проверено</div>
+    <h1>Питание под<br><em>твою норму</em></h1>
+    <p class="hero-sub">Фильтруй рецепты по калориям, добавляй в планировщик дня и следи за балансом КБЖУ</p>
+    <div class="hero-stats">
+      <div class="hs"><b>120</b><span>рецептов</span></div>
+      <div class="hs"><b>95–420</b><span>ккал/порция</span></div>
+      <div class="hs"><b>4</b><span>типа блюд</span></div>
+      <div class="hs"><b>3</b><span>цели питания</span></div>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-wrap">
+    <div class="filter-row">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Поиск рецепта..." oninput="applyFilters()">
+          <span class="search-icon">🔍</span>
+        </div>
+        <div class="cal-filter">
+          <span class="cal-label">Калории:</span>
+          <div class="range-wrap" id="rangeWrap">
+            <div class="range-track"></div>
+            <div class="range-fill" id="rangeFill"></div>
+            <input type="range" class="range-min" id="rangeMin" min="0" max="500" value="0" step="10" oninput="updateRange()">
+            <input type="range" id="rangeMax" min="50" max="500" value="500" step="10" oninput="updateRange()">
+          </div>
+          <span class="cal-vals" id="calVals">0–500 ккал</span>
+        </div>
+        <span class="filter-count" id="filterCount"></span>
+      </div>
+      <div class="filter-chips">
+        <div class="fc-group">
+          <span class="fchip on" onclick="toggleMeal('all',this)">Все блюда</span>
+          <span class="fchip" onclick="toggleMeal('breakfast',this)">🌅 Завтрак</span>
+          <span class="fchip" onclick="toggleMeal('lunch',this)">☀️ Обед</span>
+          <span class="fchip" onclick="toggleMeal('dinner',this)">🌙 Ужин</span>
+          <span class="fchip" onclick="toggleMeal('snack',this)">🍎 Перекус</span>
+        </div>
+        <div class="fc-sep"></div>
+        <div class="fc-group">
+          <span class="fchip" onclick="toggleGoal('loss',this)">📉 Похудение</span>
+          <span class="fchip" onclick="toggleGoal('maintain',this)">⚖️ Поддержание</span>
+          <span class="fchip" onclick="toggleGoal('gain',this)">📈 Набор массы</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="goal-banner" id="goalBanner">
+    <div class="goal-box">
+      <div class="goal-text">📋 <strong>Планировщик дня:</strong> добавляй блюда кнопкой «+ В день» и следи за суточным балансом калорий</div>
+      <div class="goal-btns">
+        <button class="goal-btn goal-btn-open" onclick="openPlanner()">Открыть</button>
+        <button class="goal-btn goal-btn-dismiss" onclick="document.getElementById('goalBanner').style.display='none'">×</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="recipes-section">
+    <div class="results-info" id="resultsInfo"></div>
+    <div class="rgrid" id="rgrid"></div>
+    <div class="no-results" id="noResults" style="display:none">
+      <span>🥦</span>
+      <strong>Ничего не найдено</strong><br>
+      Попробуй изменить фильтры или расширить диапазон калорий
+    </div>
+  </div>
+</div>
+
+<!-- ═══ COMPAT PAGE ═══ -->
+<div class="page" id="compat">
+  <div class="sh"><h2>⚗️ Совместимость продуктов</h2><p>Правильные пары увеличивают усвоение нутриентов на 30–200%</p></div>
+  <div class="page-content" style="padding-top:0">
+    <table class="ct">
+      <tr><th>Продукт А</th><th>Продукт Б</th><th>Эффект</th><th>В рецептах</th></tr>
+      <tr><td>🍗 Курица / Мясо</td><td>🥦 Овощи</td><td class="effect">Усвоение белка + витамины</td><td>Маффины с брокколи, Плов с курицей</td></tr>
+      <tr><td>🌿 Шпинат</td><td>🍋 Лимон / Яйцо</td><td class="effect">Витамин С → усвоение железа</td><td>Крем-суп из брокколи</td></tr>
+      <tr><td>🍅 Помидоры</td><td>🫒 Оливковое масло</td><td class="effect">Жиры → усвоение ликопина</td><td>Рыба на подушке</td></tr>
+      <tr><td>🧀 Творог</td><td>🫐 Ягоды</td><td class="effect">Пробиотики + кальций</td><td>Запеканка, Сырники</td></tr>
+      <tr><td>🐟 Рыба (Омега-3)</td><td>🥑 Авокадо</td><td class="effect">Жиры → усвоение минералов</td><td>Омлет с сёмгой</td></tr>
+      <tr><td>🎃 Тыква</td><td>🫚 Корица</td><td class="effect">Контроль сахара</td><td>Тыквенный суп</td></tr>
+      <tr><td>🫘 Бобовые</td><td>🍋 Лимон</td><td class="effect">Кислота → усвоение железа</td><td>Салат с нутом, Хумус</td></tr>
+      <tr><td>🫙 Чиа</td><td>🥥 Раст. молоко</td><td class="effect">Омега-3 + кальций</td><td>Чиа-пудинг</td></tr>
+      <tr><td>🥣 Овсянка</td><td>🫙 Йогурт</td><td class="effect">Пребиотик + пробиотик</td><td>Ленивая овсянка</td></tr>
+      <tr><td>🌿 Куркума</td><td>⚫ Чёрный перец</td><td class="effect">Усвоение куркумина ×20</td><td>Дал, Тыквенный суп</td></tr>
+      <tr><td>🌊 Морская капуста</td><td>🥚 Яйцо</td><td class="effect">Йод + белок + витамин D</td><td>Салат из морской капусты</td></tr>
+      <tr><td>🐟 Лосось</td><td>🥚 Яйца</td><td class="effect">Омега-3 + белок</td><td>Омлет с сёмгой</td></tr>
+    </table>
+    <div style="background:var(--sage-pale);border-radius:12px;padding:16px 18px;margin-top:20px;font-size:13px;color:var(--ink);line-height:1.7">
+      <strong>💡 Принцип:</strong> Нутриенты усваиваются в связке. Правильные пары — это биохимия, не диетология. Все 50 рецептов созданы с учётом этих принципов.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SPICES PAGE ═══ -->
+<div class="page" id="spices">
+  <div class="sh"><h2>🌶️ Шпаргалка специй</h2><p>Польза, применение, дозировка — и где используется в рецептах</p></div>
+  <div class="page-content" style="padding-top:0">
+    <div class="spice-grid">
+      <div class="sc" style="--ci:#f4a261"><div class="sc-name">🟡 Куркума</div><div class="sc-orig">Индия · Аюрведа</div><div class="sc-body">Природный антисептик. Куркумин подавляет воспаление.<br><span class="sp">противовоспалит.</span><span class="sp">антиоксидант</span><br><em>С чёрным перцем усвоение ×20</em></div></div>
+      <div class="sc" style="--ci:#52b788"><div class="sc-name">🟤 Зира (Кумин)</div><div class="sc-orig">Ближний Восток</div><div class="sc-body">Стимулирует ферменты. Снижает газообразование от бобовых.<br><span class="sp">пищеварение</span><span class="sp">против вздутия</span></div></div>
+      <div class="sc" style="--ci:#e76f51"><div class="sc-name">🔴 Паприка</div><div class="sc-orig">Венгрия · Испания</div><div class="sc-body">Капсаицин + витамин С — ускоряет метаболизм.<br><span class="sp">метаболизм</span><span class="sp">витамин С</span></div></div>
+      <div class="sc" style="--ci:#74c69d"><div class="sc-name">🌿 Карри</div><div class="sc-orig">Индия · смесь</div><div class="sc-body">Синергия куркумы, зиры, кориандра и пажитника.<br><span class="sp">метаболизм</span><span class="sp">синергия</span></div></div>
+      <div class="sc" style="--ci:#b7e4c7"><div class="sc-name">🟫 Корица</div><div class="sc-orig">Шри-Ланка</div><div class="sc-body">Регулирует уровень сахара, снижает ГИ блюда.<br><span class="sp">контроль сахара</span><span class="sp">снижает ГИ</span></div></div>
+      <div class="sc" style="--ci:#d8f3dc"><div class="sc-name">⚪ Имбирь</div><div class="sc-orig">Азия · универсал</div><div class="sc-body">Гингерол — противовоспалительный агент. Ускоряет пищеварение.<br><span class="sp">иммунитет</span><span class="sp">согревающий</span></div></div>
+      <div class="sc" style="--ci:#95d5b2"><div class="sc-name">🧄 Чеснок</div><div class="sc-orig">Средиземноморье</div><div class="sc-body">Аллицин — природный антибиотик. Добавляй в конце готовки.<br><span class="sp">антибактериальный</span><span class="sp">иммунитет</span></div></div>
+      <div class="sc" style="--ci:#1b4332"><div class="sc-name">🖤 Чёрный перец</div><div class="sc-orig">Индия</div><div class="sc-body">Пиперин увеличивает усвоение куркумина в 20 раз.<br><span class="sp">усвоение куркумы ×20</span></div></div>
+      <div class="sc" style="--ci:#f4a261"><div class="sc-name">🌱 Кориандр</div><div class="sc-orig">Ближний Восток</div><div class="sc-body">Семена — для мяса. Зелень (кинза) — витамины A, C, K.<br><span class="sp">детокс</span><span class="sp">пищеварение</span></div></div>
+    </div>
+    <div class="rules-box">
+      <strong style="color:#95d5b2">⚠️ Золотые правила специй</strong><br>
+      🔥 Целые специи на сухой сковороде 30 сек — аромат усиливается в 3 раза<br>
+      🧪 Куркума + чёрный перец = обязательная пара<br>
+      🧄 Чеснок — в самом конце готовки<br>
+      🌿 Сушёные травы в начале, свежие — в конце<br>
+      ⚖️ Базовая дозировка: ¼ ч.л. на 100г продукта
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TEMPS PAGE ═══ -->
+<div class="page" id="temps">
+  <div class="sh"><h2>🌡️ Температуры и вес порций</h2><p>Безопасность приготовления + точный вес одной порции</p></div>
+  <div class="page-content" style="padding-top:0">
+    <h3 style="color:var(--ink);margin-bottom:14px;font-size:16px">Безопасные температуры внутри готового продукта</h3>
+    <table class="ct">
+      <tr><th>Продукт</th><th>t° внутри</th><th>Статус</th><th>Как проверить</th></tr>
+      <tr><td>🍗 Курица / Индейка</td><td style="font-size:16px;font-weight:800;color:var(--amber)">74°C</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">БЕЗОПАСНО</span></td><td>Термометр в центр</td></tr>
+      <tr><td>🐟 Белая рыба</td><td style="font-size:16px;font-weight:800;color:var(--amber)">63°C</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">БЕЗОПАСНО</span></td><td>Расслаивается на хлопья</td></tr>
+      <tr><td>🥩 Говядина тушёная</td><td style="font-size:16px;font-weight:800;color:var(--amber)">71°C</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">БЕЗОПАСНО</span></td><td>Мягкость вилкой</td></tr>
+      <tr><td>🥚 Яйца запечённые</td><td style="font-size:16px;font-weight:800;color:var(--amber)">71°C</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">БЕЗОПАСНО</span></td><td>Белок полностью белый</td></tr>
+      <tr><td>🐟 Тунец (sear)</td><td style="font-size:16px;font-weight:800;color:var(--amber)">52–54°C</td><td><span style="background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">MEDIUM-RARE</span></td><td>Внутри розовый — норма</td></tr>
+      <tr><td>🧆 Фарш куриный</td><td style="font-size:16px;font-weight:800;color:var(--amber)">74°C</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">БЕЗОПАСНО</span></td><td>Прозрачный сок</td></tr>
+      <tr><td>🥛 Творожная запеканка</td><td style="font-size:16px;font-weight:800;color:var(--amber)">70°C</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">БЕЗОПАСНО</span></td><td>Палочка выходит сухой</td></tr>
+    </table>
+    <div style="background:#fff3e0;border-radius:10px;padding:14px 16px;margin-top:16px;font-size:13px;color:#7c4d00;line-height:1.6">
+      ⚠️ <strong>Духовки врут до ±20°C</strong> — используй кулинарный термометр для мяса. Для куриной пастромы это критично.
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// DATA — 50 RECIPES
+// ══════════════════════════════════════
+const RECIPES = [
+  // ЗАВТРАКИ
+  {n:1,title:"Овсянка в банке (Ленивая)",meal:"breakfast",goal:"maintain",kcal:280,p:12,f:8,c:40,season:"🌍 Весь год",ingr:"Овсянка (4 ст.л./1 порц.), Йогурт (150г), Семена льна (1 ч.л.), Ягоды",steps:"Смешай овсянку, йогурт и лён в банке. Оставь на ночь. Утром добавь ягоды.",tip:"Щепотка соли раскрывает вкус овса.",sub:"Йогурт → кефир; ягоды → банан",store:"До 2 суток",portW:"~320г",accent:"#52b788"},
+  {n:2,title:"Чиа-пудинг на кокосовом молоке",meal:"breakfast",goal:"maintain",kcal:260,p:6,f:16,c:22,season:"☀️ Лето",ingr:"Чиа (3 ст.л./30г/1 порц.), Кокосовое молоко (150мл), Ягоды (50г)",steps:"Смешай чиа с молоком. В холодильник на 4 часа. Добавь ягоды перед едой.",tip:"Перемешай дважды через 10 мин — семена не осядут комком.",sub:"Кокосовое → овсяное молоко (−60 ккал)",store:"До 3 суток",portW:"~220г",accent:"#b7e4c7"},
+  {n:3,title:"Творожная запеканка с бананом",meal:"breakfast",goal:"maintain",kcal:190,p:16,f:6,c:19,season:"🌍 Весь год",ingr:"Творог 5% (500г/4 порц.), Яйца (2 шт), Банан (2 шт), Изюм (30г)",steps:"Взбей творог, яйца и бананы в блендере. Вмешай изюм. Запекай 40 мин при 170°C.",tip:"Самые перезрелые бананы заменяют сахар.",sub:"Изюм → финики; банан → тыквенное пюре",store:"До 2 суток",portW:"~150г",accent:"#f4a261"},
+  {n:4,title:"Овсяноблин с сыром и рыбой",meal:"breakfast",goal:"gain",kcal:320,p:21,f:16,c:24,season:"🌍 Весь год",ingr:"Овсянка (3 ст.л./1 порц.), Яйцо (1 шт), Молоко (30мл), Сёмга (30г), Сыр (20г)",steps:"Смешай овсянку, яйцо и молоко. Пожарь блин. Положи сыр и рыбу, накрой второй половиной.",tip:"Измельчи хлопья в кофемолке — блин будет нежнее.",sub:"Сёмга → тунец из банки",store:"Есть горячим",portW:"~170г",accent:"#e76f51"},
+  {n:5,title:"Зелёный смузи-боул",meal:"breakfast",goal:"loss",kcal:140,p:3,f:1,c:28,season:"☀️ Лето",ingr:"Шпинат (50г/1 порц.), Киви (1 шт), Банан (0.5 шт), Вода",steps:"Взбей всё в блендере. Вылей в миску. Укрась ягодами и семенами.",tip:"Киви даёт кислинку, банан — сладость.",sub:"Киви → манго; шпинат → пекинская капуста",store:"Сразу пить",portW:"~300мл",accent:"#52b788"},
+  {n:6,title:"Творожные сырники в духовке",meal:"breakfast",goal:"maintain",kcal:240,p:28,f:8,c:14,season:"🌍 Весь год",ingr:"Творог сухой (300г/2 порц.), Желток (1 шт), Рисовая мука (1 ст.л.), Ванилин",steps:"Смешай творог, желток и муку. Сформируй шарики. Запекай 20 мин при 180°C.",tip:"Только желток — сырники не поплывут в духовке.",sub:"Рисовая мука → овсяная",store:"До 48 часов",portW:"3 шт / ~180г",accent:"#74c69d"},
+  {n:7,title:"Смузи «Детокс» зелёный",meal:"breakfast",goal:"loss",kcal:95,p:2,f:0,c:21,season:"🌸 Весна / ☀️ Лето",ingr:"Яблоко зелёное (1 шт/1 порц.), Огурец (1 шт), Сельдерей (1 стебель), Сок лимона",steps:"Нарежь и взбей в блендере. Добавь немного воды для густоты.",tip:"Добавь кусочек имбиря — разгоняет метаболизм.",sub:"Яблоко → груша",store:"Пить сразу",portW:"~300мл",accent:"#95d5b2"},
+  {n:8,title:"Банановое «мороженое» с какао",meal:"breakfast",goal:"maintain",kcal:190,p:3,f:1,c:42,season:"☀️ Лето",ingr:"Банан замороженный (2 шт ~200г/1 порц.), Какао-порошок (1 ч.л.)",steps:"Нарежь бананы кружками и заморозь. Взбей в блендере с какао до крема.",tip:"1 ст.л. молока помогает блендеру справиться.",sub:"Какао → кэроб; добавить арахисовую пасту",store:"Повторно заморозить",portW:"~200г",accent:"#c8833a"},
+  {n:9,title:"Запечённые яблоки с творогом",meal:"breakfast",goal:"loss",kcal:160,p:9,f:3,c:24,season:"🍂 Осень / ❄️ Зима",ingr:"Яблоки (2 шт/2 порц.), Творог 5% (100г), Корица, Мёд (1 ч.л.)",steps:"Вырежи середину яблок. Наполни творогом с корицей. Запекай 20 мин при 180°C.",tip:"Налей воды на дно формы — яблоки томятся в пару.",sub:"Мёд → финиковая паста; яблоки → груши",store:"До 24 часов",portW:"~200г",accent:"#e76f51"},
+  {n:10,title:"Гречневая каша с грибами",meal:"breakfast",goal:"maintain",kcal:230,p:8,f:5,c:38,season:"❄️ Зима",ingr:"Гречка (100г/2 порц.), Шампиньоны (200г), Лук (1 шт)",steps:"Гречку свари. Грибы обжарь с луком. Смешай и потоми 5 мин.",tip:"Обжарь гречку 2 мин до варки — вкус как из казана.",sub:"Шампиньоны → лесные грибы",store:"До 2 суток",portW:"~250г",accent:"#7aab89"},
+
+  // ОБЕДЫ
+  {n:11,title:"Куриная пастрома",meal:"lunch",goal:"loss",kcal:160,p:34,f:3,c:0,season:"🌍 Весь год",ingr:"Куриное филе (600г/4 порц.), Рассол, Паприка, Чеснок",steps:"Замочи в рассоле 2 часа. Натри специями. Пеки при 220°C 15 мин. Оставь в закрытой духовке.",tip:"Никогда не открывай духовку — мясо доходит на остаточном тепле.",sub:"Паприка → прованские травы",store:"До 4 суток",portW:"~130г",accent:"#e76f51"},
+  {n:12,title:"Чечевичный плов с курицей",meal:"lunch",goal:"gain",kcal:310,p:34,f:5,c:32,season:"❄️ Зима",ingr:"Зелёная чечевица (200г/3 порц.), Курица (300г), Морковь, Лук",steps:"Обжарь курицу и овощи. Всыпь чечевицу, залей 1:2. Вари 25–30 мин.",tip:"Зелёная чечевица держит форму — идеальная замена рису.",sub:"Чечевица → маш; курица → индейка",store:"До 3 суток",portW:"~280г",accent:"#52b788"},
+  {n:13,title:"Белая рыба на овощной подушке",meal:"lunch",goal:"loss",kcal:240,p:34,f:4,c:12,season:"🌍 Весь год",ingr:"Треска (400г/2 порц.), Овощная смесь замор. (300г), Соевый соус (2 ст.л.)",steps:"Овощи припусти 5 мин. Сверху рыба, соус. Томи под крышкой 15 мин.",tip:"Рыба готовится на пару — сохраняет все витамины.",sub:"Треска → минтай; соус → тамари",store:"До 24 часов",portW:"~280г",accent:"#3a6fa8"},
+  {n:14,title:"Фаршированные кабачки «Лодочки»",meal:"lunch",goal:"maintain",kcal:230,p:26,f:9,c:10,season:"☀️ Лето",ingr:"Кабачки (2 шт/2 порц.), Фарш индейки (300г), Помидор (1 шт), Сыр (30г)",steps:"Выбери середину. Мякоть добавь в фарш. Заполни кабачки. Запекай 35 мин при 190°C.",tip:"Мякоть кабачка делает начинку в 2 раза сочнее.",sub:"Фарш индейки → куриный",store:"До 2 суток",portW:"~350г",accent:"#74c69d"},
+  {n:15,title:"Греческий салат с нутом",meal:"lunch",goal:"maintain",kcal:250,p:10,f:14,c:22,season:"☀️ Лето",ingr:"Нут (150г/2 порц.), Огурец (1 шт), Томаты (200г), Фета (50г), Оливки (20г)",steps:"Всё нарежь кубиком. Смешай с нутом. Заправь оливковым маслом и лимоном.",tip:"Томаты + масло = усвоение ликопина растёт в разы.",sub:"Фета → козий сыр",store:"До 12 часов",portW:"~280г",accent:"#c8833a"},
+  {n:16,title:"Крем-суп из брокколи",meal:"lunch",goal:"loss",kcal:140,p:7,f:6,c:14,season:"❄️ Зима",ingr:"Брокколи (400г/3 порц.), Шпинат (100г), Сливки 10% (100мл), Лук",steps:"Отвари брокколи с луком 10 мин. Добавь шпинат на 1 мин. Влей сливки, взбей.",tip:"Не вари шпинат долго — суп потеряет яркий цвет.",sub:"Сливки → кокосовое молоко",store:"До 48 часов",portW:"~250мл",accent:"#52b788"},
+  {n:17,title:"Гречневая лапша Соба с овощами",meal:"lunch",goal:"maintain",kcal:290,p:11,f:6,c:48,season:"🌍 Весь год",ingr:"Соба (150г/2 порц.), Болг. перец, Кабачок (100г), Соевый соус",steps:"Свари собу. Овощи обжарь. Смешай с лапшой и соусом, прогрей.",tip:"Промывай собу ледяной водой — не слипнется.",sub:"Соба → гречневая вермишель",store:"До 24 часов",portW:"~220г",accent:"#f4a261"},
+  {n:18,title:"Запечённая грудка в маринаде",meal:"lunch",goal:"loss",kcal:210,p:38,f:5,c:3,season:"🌍 Весь год",ingr:"Куриное филе (400г/2 порц.), Греч. йогурт (100г), Чеснок, Паприка",steps:"Сделай надрезы. Смажь маринадом. Маринуй 30 мин. Запекай 25 мин при 180°C.",tip:"Йогурт удерживает влагу — грудка никогда не пересохнет.",sub:"Йогурт → кефир 1%",store:"До 3 суток",portW:"~170г",accent:"#e76f51"},
+  {n:19,title:"Тыквенный суп-пюре",meal:"lunch",goal:"loss",kcal:120,p:3,f:4,c:18,season:"🍂 Осень",ingr:"Тыква (500г/3 порц.), Кокосовое молоко (50мл), Карри",steps:"Отвари тыкву. Слей воду, добавь молоко и карри. Взбей блендером.",tip:"Карри отлично подчёркивает сладость тыквы.",sub:"Кокосовое → обычные сливки",store:"До 3 суток",portW:"~280мл",accent:"#c8833a"},
+  {n:20,title:"Салат с нутом и тунцом",meal:"lunch",goal:"maintain",kcal:280,p:30,f:6,c:26,season:"☀️ Лето",ingr:"Нут варёный (150г/2 порц.), Тунец в с/с (1 банка), Огурец, Красный лук",steps:"Слей воду из тунца. Смешай нут, тунец и овощи. Заправь лимоном.",tip:"Консервированный нут по КБЖУ идентичен варёному.",sub:"Нут → белая фасоль",store:"До 24 часов",portW:"~280г",accent:"#3a6fa8"},
+
+  // УЖИНЫ
+  {n:21,title:"Индейка с черносливом",meal:"dinner",goal:"maintain",kcal:215,p:32,f:6,c:9,season:"❄️ Зима",ingr:"Филе индейки (500г/3 порц.), Чернослив (50г), Морковь, Лук",steps:"Нарежь крупно. Добавь чернослив. Туши 45 мин.",tip:"Чернослив даёт сладость и делает мясо мягче.",sub:"Чернослив → курага",store:"До 3 суток",portW:"~270г",accent:"#7aab89"},
+  {n:22,title:"Рыбные котлеты с кабачком",meal:"dinner",goal:"loss",kcal:190,p:28,f:6,c:6,season:"🌍 Весь год",ingr:"Фарш белой рыбы (400г/2 порц.), Кабачок (150г), Яйцо (1 шт)",steps:"Кабачок натри и отожми. Смешай с фаршем и яйцом. Готовь на пару 20 мин.",tip:"Кабачок делает котлеты невероятно сочными.",sub:"Фарш → тилапия или минтай",store:"До 2 суток",portW:"~220г",accent:"#3a6fa8"},
+  {n:23,title:"Перловая каша с грибами",meal:"dinner",goal:"maintain",kcal:230,p:8,f:5,c:38,season:"❄️ Зима",ingr:"Перловка (100г/2 порц.), Шампиньоны (200г), Лук",steps:"Свари перловку (замочи на ночь). Обжарь грибы с луком. Смешай.",tip:"Замоченная перловка варится за 20 мин вместо часа.",sub:"Перловка → ячневая; шампиньоны → лесные",store:"До 3 суток",portW:"~280г",accent:"#74c69d"},
+  {n:24,title:"Стейк из цветной капусты",meal:"dinner",goal:"loss",kcal:160,p:9,f:8,c:14,season:"🍂 Осень",ingr:"Цветная капуста (1 кочан/2 порц.), Сыр маложирный (50г), Сметана 10% (2 ст.л.)",steps:"Нарежь «стейками» 2 см. Смажь сметаной. Запекай 20 мин, посыпь сыром, ещё 5 мин.",tip:"Не отрезай кочерыжку — держит форму стейка.",sub:"Сметана → йогурт",store:"До 24 часов",portW:"~200г",accent:"#52b788"},
+  {n:25,title:"Шакшука (яйца в томатах)",meal:"dinner",goal:"maintain",kcal:220,p:14,f:12,c:14,season:"🌍 Весь год",ingr:"Яйца (3 шт/2 порц.), Томаты (300г), Лук, Болг. перец",steps:"Обжарь лук и перец. Добавь томаты, туши 10 мин. Сделай углубления, разбей яйца. Под крышкой 5 мин.",tip:"Желток должен остаться жидким — это соус для хлеба.",sub:"Свежие томаты → консервированные",store:"Есть сразу",portW:"~300г",accent:"#d94f3d"},
+  {n:26,title:"Треска в кокосовом молоке",meal:"dinner",goal:"maintain",kcal:210,p:28,f:8,c:4,season:"❄️ Зима",ingr:"Треска (300г/2 порц.), Кокосовое молоко (100мл), Имбирь",steps:"Рыбу залей кокосовым молоком с имбирём. Томи 15 мин.",tip:"Кокосовое молоко делает рыбу сливочной без лактозы.",sub:"Треска → тилапия; молоко → сливки 10%",store:"До 24 часов",portW:"~200г",accent:"#b7e4c7"},
+  {n:27,title:"Говядина с черносливом тушёная",meal:"dinner",goal:"gain",kcal:250,p:28,f:8,c:14,season:"❄️ Зима",ingr:"Говядина (400г/3 порц.), Чернослив (50г), Лук",steps:"Обжарь мясо с луком. Добавь воду и чернослив. Томи 1 час.",tip:"Чернослив даёт соус без муки.",sub:"Говядина → телятина",store:"До 3 суток",portW:"~230г",accent:"#c8833a"},
+  {n:28,title:"Баклажан по-азиатски",meal:"dinner",goal:"loss",kcal:90,p:2,f:3,c:12,season:"☀️ Лето",ingr:"Баклажан (200г/2 порц.), Соевый соус, Кунжут",steps:"Нарежь кубиком. Жарь на сильном огне до корочки. Влей соус, посыпь кунжутом.",tip:"Жарь быстро — не впитает масло.",sub:"Соус → тамари",store:"До 24 часов",portW:"~150г",accent:"#1b4332"},
+  {n:29,title:"Куриные маффины с брокколи",meal:"dinner",goal:"loss",kcal:180,p:28,f:7,c:2,season:"🌍 Весь год",ingr:"Фарш куриный (400г/3 порц.), Брокколи (150г), Яйцо, Сыр (20г)",steps:"Смешай фарш, яйцо и брокколи. Разложи по формам. Посыпь сыром. Запекай 25 мин при 180°C.",tip:"Отлично берётся с собой — перекус или обед.",sub:"Брокколи → цветная капуста",store:"До 2 суток",portW:"2 шт / ~130г",accent:"#52b788"},
+  {n:30,title:"ПП-шаурма с индейкой",meal:"dinner",goal:"maintain",kcal:310,p:28,f:7,c:34,season:"🌍 Весь год",ingr:"Лаваш (0.5 шт/1 порц.), Индейка жар. (100г), Капуста, Огурец, Йогурт",steps:"Смажь лаваш йогуртом. Выложи начинку. Сверни роллом. Обжарь 2 мин на сухой сковороде.",tip:"Заворачивай плотно — соус не вытечет.",sub:"Лаваш → листья салата (−углеводы)",store:"Есть сразу",portW:"~280г",accent:"#e76f51"},
+
+  // ПЕРЕКУСЫ
+  {n:31,title:"Свекольный хумус",meal:"snack",goal:"maintain",kcal:180,p:8,f:6,c:22,season:"🌍 Весь год",ingr:"Нут варёный (300г/4 порц.), Свёкла варёная (1 шт), Чеснок, Лимон",steps:"Все ингредиенты взбей блендером. Добавь 1 ст.л. воды для текстуры.",tip:"Ешь с овощными палочками вместо хлеба.",sub:"Свёкла → жареный красный перец",store:"До 3 суток",portW:"~120г",accent:"#d94f3d"},
+  {n:32,title:"Гуакамоле с хлебцами",meal:"snack",goal:"maintain",kcal:220,p:4,f:16,c:15,season:"🌍 Весь год",ingr:"Авокадо (1 шт/2 порц.), Сок лайма, Томат (0.5 шт), Хлебцы (4 шт)",steps:"Авокадо разомни вилкой. Добавь томат и сок лайма. Подавай на хлебцах.",tip:"Косточка в гуакамоле — не темнеет.",sub:"Хлебцы → сырые овощи",store:"Не хранится",portW:"~180г",accent:"#7aab89"},
+  {n:33,title:"Оладьи из чечевицы",meal:"snack",goal:"maintain",kcal:280,p:19,f:4,c:42,season:"🌍 Весь год",ingr:"Красная чечевица (150г/2 порц.), Вода (70мл), Карри",steps:"Замочи чечевицу 3 часа. Взбей с водой. Жарь под крышкой по 3 мин.",tip:"Это тесто — отличная база для ПП-пиццы.",sub:"Карри → куркума + перец",store:"До 2 суток",portW:"~180г",accent:"#c8833a"},
+  {n:34,title:"Овсяное печенье с орехами",meal:"snack",goal:"maintain",kcal:110,p:3,f:4,c:14,season:"🌍 Весь год",ingr:"Овсянка (150г/4 порц.), Банан (2 шт), Грецкие орехи (50г)",steps:"Разомни банан. Смешай с овсянкой и орехами. Сформируй печенье. Пеки 20 мин при 180°C.",tip:"Делай тоньше — будет хрустеть.",sub:"Орехи → семена подсолнечника",store:"До 5 суток",portW:"1 шт / ~35г",accent:"#f4a261"},
+  {n:35,title:"Салат из свёклы с козьим сыром",meal:"snack",goal:"maintain",kcal:210,p:8,f:14,c:13,season:"🍂 Осень",ingr:"Свёкла (2 шт/2 порц.), Козий сыр (50г), Грецкие орехи (20г), Руккола",steps:"Свёклу нарежь кубиком. Выложи на рукколу. Сверху сыр и орехи.",tip:"Запекай свёклу в фольге — вкус в разы насыщеннее.",sub:"Козий сыр → фета",store:"До 12 часов",portW:"~200г",accent:"#d94f3d"},
+  {n:36,title:"Дал из красной чечевицы",meal:"snack",goal:"maintain",kcal:240,p:16,f:2,c:40,season:"❄️ Зима",ingr:"Чечевица (200г/3 порц.), Куркума, Томаты (100г)",steps:"Чечевицу вари 20 мин. Добавь томаты и куркуму. Томи до пюреобразной консистенции.",tip:"Куркума — мощный антиоксидант. Добавь чёрный перец для усвоения ×20.",sub:"Красная чечевица → жёлтая",store:"До 3 суток",portW:"~200г",accent:"#f4a261"},
+  {n:37,title:"Суп из маша с овощами",meal:"snack",goal:"loss",kcal:180,p:11,f:2,c:29,season:"🌸 Весна",ingr:"Маш (100г/3 порц.), Морковь, Болг. перец, Кинза",steps:"Маш свари 30–40 мин. Добавь овощи за 15 мин. Посыпь кинзой.",tip:"Маш не требует замачивания в отличие от фасоли.",sub:"Маш → зелёная чечевица",store:"До 3 суток",portW:"~300мл",accent:"#52b788"},
+  {n:38,title:"Тыква запечённая с нутом",meal:"snack",goal:"loss",kcal:190,p:7,f:6,c:27,season:"🍂 Осень",ingr:"Тыква (300г/2 порц.), Нут варёный (100г), Оливковое масло (1 ч.л.), Паприка",steps:"Нарежь кубиком. Смешай с нутом, маслом и специями. Запекай 25 мин при 200°C.",tip:"Нут в духовке становится хрустящим — замена сухарикам.",sub:"Тыква → батат",store:"До 24 часов",portW:"~220г",accent:"#c8833a"},
+  {n:39,title:"Спаржа с пармезаном",meal:"snack",goal:"loss",kcal:90,p:7,f:4,c:6,season:"🌸 Весна",ingr:"Спаржа (300г/2 порц.), Пармезан (20г), Лимон",steps:"Обжарь спаржу 4 мин. Посыпь сыром, сбрызни лимоном.",tip:"Не перевари — должна хрустеть.",sub:"Спаржа → стручковая фасоль",store:"Сразу есть",portW:"~160г",accent:"#7aab89"},
+  {n:40,title:"Тунец в кунжуте",meal:"snack",goal:"loss",kcal:180,p:34,f:4,c:1,season:"🌍 Весь год",ingr:"Филе тунца (200г/2 порц.), Кунжут (1 ст.л.)",steps:"Обваляй тунец в кунжуте. Жарь по 1 мин с каждой стороны.",tip:"Внутри должен остаться розовым — это норма для тунца.",sub:"Тунец → лосось",store:"Не хранится",portW:"~100г",accent:"#3a6fa8"},
+
+  // ЕЩЁ РЕЦЕПТЫ
+  {n:41,title:"Омлет со слабосолёной семгой",meal:"breakfast",goal:"gain",kcal:250,p:20,f:18,c:2,season:"🌍 Весь год",ingr:"Яйца (2 шт/1 порц.), Семга (30г), Зелень",steps:"Взбей яйца. Вылей на сковороду. Положи кусочки рыбы. Заверни роллом.",tip:"Рыбу не жарь — кладёт в конце, прогреется от тепла омлета.",sub:"Семга → любая слабосолёная рыба",store:"Сразу есть",portW:"~150г",accent:"#3a6fa8"},
+  {n:42,title:"Батат с красной фасолью",meal:"lunch",goal:"gain",kcal:320,p:8,f:2,c:66,season:"🍂 Осень",ingr:"Батат (2 шт/2 порц.), Фасоль красная конс. (150г), Зелень",steps:"Запеки батат в фольге 40 мин. Разрежь, разомни мякоть. Выложи фасоль и зелень.",tip:"Батат слаще картошки и отлично сочетается с бобовыми.",sub:"Батат → обычный картофель + корица",store:"До 2 суток",portW:"~350г",accent:"#c8833a"},
+  {n:43,title:"Тёплый салат с фасолью и баклажанами",meal:"dinner",goal:"loss",kcal:140,p:4,f:7,c:15,season:"☀️ Лето",ingr:"Баклажан (1 шт/2 порц.), Стручковая фасоль (200г), Чеснок, Оливковое масло",steps:"Баклажан запеки кубиком. Фасоль отвари 5 мин. Смешай, добавь чеснок и масло.",tip:"Запекай, а не жарь — не впитает лишнее масло.",sub:"Баклажан → кабачок",store:"До 24 часов",portW:"~250г",accent:"#52b788"},
+  {n:44,title:"Морская капуста с яйцом",meal:"snack",goal:"maintain",kcal:195,p:14,f:13,c:5,season:"🌍 Весь год",ingr:"Морская капуста (150г/1 порц.), Яйцо варёное (2 шт), Кунжутное масло (1 ч.л.)",steps:"Яйца нарежь кубиком. Смешай с капустой. Заправь маслом.",tip:"Выбирай капусту без уксуса и майонеза в составе.",sub:"Кунжутное масло → оливковое",store:"До 24 часов",portW:"~220г",accent:"#1b4332"},
+  {n:45,title:"Кабачковые оладьи ПП",meal:"breakfast",goal:"loss",kcal:150,p:7,f:5,c:18,season:"☀️ Лето",ingr:"Кабачок (300г/2 порц.), Яйцо (1 шт), Овсяная мука (3 ст.л.)",steps:"Кабачок натри, отожми. Смешай с яйцом и мукой. Жарь на антипригарной сковороде.",tip:"Чем сильнее отожмёшь сок — тем меньше муки нужно.",sub:"Овсяная мука → рисовая",store:"До 24 часов",portW:"~180г",accent:"#74c69d"},
+  {n:46,title:"Ленивая гречка «по-купечески»",meal:"dinner",goal:"gain",kcal:320,p:26,f:5,c:42,season:"🌍 Весь год",ingr:"Гречка (150г/3 порц.), Филе индейки (300г), Морковь",steps:"Обжарь индейку и морковь. Добавь гречку, залей 1:2. Вари до готовности.",tip:"Индейка + гречка = лучший ПП-ужин по соотношению цена/белок.",sub:"Индейка → курица",store:"До 3 суток",portW:"~280г",accent:"#7aab89"},
+  {n:47,title:"Сёмга с зелёным соусом",meal:"dinner",goal:"maintain",kcal:280,p:30,f:16,c:3,season:"🌍 Весь год",ingr:"Стейк сёмги (200г/1 порц.), Шпинат (50г), Лимон, Чеснок",steps:"Сёмгу обжарь по 3 мин. Шпинат с чесноком обжарь 1 мин. Подавай вместе.",tip:"Сёмга готова когда цвет меняется до середины стейка.",sub:"Сёмга → форель или кета",store:"Сразу есть",portW:"~200г",accent:"#3a6fa8"},
+  {n:48,title:"Перец фаршированный с киноа",meal:"dinner",goal:"maintain",kcal:280,p:24,f:5,c:32,season:"🍂 Осень",ingr:"Перец (4 шт/4 порц.), Индейка (300г), Киноа (100г)",steps:"Смешай индейку с полуготовым киноа. Заполни перцы. Туши в томатном соке 40 мин.",tip:"Киноа в перце — лёгкий аналог риса.",sub:"Индейка → куриный фарш",store:"До 3 суток",portW:"~300г",accent:"#e76f51"},
+  {n:49,title:"Салат с индейкой и яблоком",meal:"lunch",goal:"maintain",kcal:190,p:22,f:4,c:16,season:"🍂 Осень",ingr:"Индейка (200г/2 порц.), Яблоко (1 шт), Салатный микс (100г), Йогурт (2 ст.л.)",steps:"Индейку обжарь на сухой сковороде. Нарежь кубиком. Яблоко соломкой. Смешай с листьями и йогуртом.",tip:"Яблоко бери кисло-сладкое (Гренни Смит).",sub:"Индейка → куриное филе",store:"До 12 часов",portW:"~220г",accent:"#95d5b2"},
+  {n:50,title:"Авокадо-тост с яйцом пашот",meal:"breakfast",goal:"gain",kcal:340,p:16,f:20,c:24,season:"🌍 Весь год",ingr:"Хлеб цз (2 ломт./1 порц.), Авокадо (0.5 шт), Яйцо (1 шт), Лимон, Специи",steps:"Поджарь хлеб. Авокадо разомни с лимоном. Сделай яйцо пашот (вода с уксусом, 3 мин). Собери тост.",tip:"Уксус в воде для пашот держит белок вместе.",sub:"Хлеб цз → рисовые хлебцы",store:"Есть сразу",portW:"~220г",accent:"#c8833a"},
+
+  // ── ГРУППА 1: БУДНИЧНЫЕ (51-80) ──
+  {n:51,group:"daily",title:"Золотистый бульон с вермишелью",meal:"lunch",goal:"maintain",kcal:180,p:22,f:5,c:14,season:"🌍 Весь год",ingr:"Курица (500г/4 порц.), Морковь (1 шт), Лук (1 шт), Вермишель (50г)",steps:"Залей курицу водой, доведи до кипения, сними пену. Вари с целыми овощами 45 мин на тихом огне. Процеди, мясо верни в суп, засыпь вермишель, вари 3 мин.",tip:"Не давай бурно кипеть и вари без крышки — бульон будет идеально прозрачным.",sub:"Вермишель → рис или лапша соба",store:"До 3 суток",portW:"~350мл",accent:"#f4a261"},
+  {n:52,group:"daily",title:"Овсянка на молоке с бананом",meal:"breakfast",goal:"maintain",kcal:240,p:8,f:6,c:38,season:"🌍 Весь год",ingr:"Хлопья овсяные (100г/2 порц.), Молоко 2.5% (400мл), Банан (1 шт), Мёд (1 ч.л.)",steps:"Прогрей хлопья 1 мин. Влей молоко, вари на медленном огне 10 мин, постоянно помешивая. За 2 мин добавь банан.",tip:"Постоянное помешивание венчиком выбивает крахмал — каша получится кремовой как в ресторане.",sub:"Молоко → растительное; мёд → кленовый сироп",store:"Лучше есть сразу",portW:"~300г",accent:"#c8833a"},
+  {n:53,group:"daily",title:"Яйца пашот на шпинате",meal:"breakfast",goal:"loss",kcal:160,p:13,f:11,c:2,season:"🌍 Весь год",ingr:"Яйца (2 шт/1 порц.), Шпинат свежий (100г), Уксус (1 ст.л.), Масло сл. (5г)",steps:"Шпинат припусти на масле 1 мин. В воду добавь уксус, закрути воронку и влей яйца. Вари 3 мин. Выложи на шпинат.",tip:"Сначала разбей яйцо в сито — лишний жидкий белок стечёт, пашот получится аккуратным.",sub:"Шпинат → руккола",store:"Не хранится",portW:"~180г",accent:"#52b788"},
+  {n:54,group:"daily",title:"Гречка с грибами и луком",meal:"dinner",goal:"maintain",kcal:215,p:9,f:7,c:32,season:"🌍 Весь год",ingr:"Гречка (150г/2 порц.), Шампиньоны (200г), Лук (1 шт), Масло (1 ст.л.)",steps:"Свари рассыпчатую гречку. Грибы обжарь с луком на сильном огне. Смешай, дай постоять под крышкой 5 мин.",tip:"Обжарь гречку 2 мин на сухой сковороде до варки — станет ароматнее и не слипнется.",sub:"Шампиньоны → лесные грибы",store:"До 3 суток",portW:"~260г",accent:"#7aab89"},
+  {n:55,group:"daily",title:"Ленивые голубцы в соусе",meal:"lunch",goal:"maintain",kcal:290,p:22,f:14,c:18,season:"❄️ Зима",ingr:"Фарш говяжий (400г/3 порц.), Капуста (200г), Рис (50г), Сметана (2 ст.л.), Томатная паста",steps:"Капусту нашинкуй, смешай с фаршем и полувареным рисом. Сформируй котлеты. Залей сметаной с томатом. Туши 35 мин.",tip:"Добавь в соус щепотку сахара — нейтрализует кислоту томатов.",sub:"Говядина → индейка; рис → гречка",store:"До 3 суток",portW:"~300г",accent:"#e76f51"},
+  {n:56,group:"daily",title:"Макароны по-флотски ПП",meal:"lunch",goal:"maintain",kcal:310,p:24,f:8,c:38,season:"🌍 Весь год",ingr:"Макароны т/с (150г/2 порц.), Фарш индейки (250г), Лук (1 шт)",steps:"Отвари макароны. Фарш обжарь с луком, постоянно разбивая комочки. Соедини и прогрей 2 мин.",tip:"Добавь 50 мл бульона от макарон — блюдо станет сочным, а не сухим.",sub:"Индейка → куриный фарш",store:"До 2 суток",portW:"~280г",accent:"#3a6fa8"},
+  {n:57,group:"daily",title:"Омлет с овощами под крышкой",meal:"breakfast",goal:"maintain",kcal:260,p:19,f:16,c:8,season:"🌍 Весь год",ingr:"Яйца (3 шт/1 порц.), Молоко (50мл), Смесь овощей (100г), Сыр (20г)",steps:"Овощи обжарь 2 мин. Взбей яйца с молоком, залей. Посыпь сыром, накрой крышкой, томи 7–10 мин.",tip:"Не открывай крышку — омлет поднимется за счёт пара и будет пышным.",sub:"Сыр → фета; овощи → любая смесь",store:"Не хранится",portW:"~220г",accent:"#74c69d"},
+  {n:58,group:"daily",title:"Рис с курицей и овощами",meal:"lunch",goal:"gain",kcal:320,p:26,f:6,c:42,season:"🌍 Весь год",ingr:"Рис (150г/3 порц.), Куриное филе (300г), Морковь (1 шт), Горошек (50г)",steps:"Обжарь кубики курицы, добавь морковь и горошек. Всыпь рис, залей водой 1:2. Вари на малом огне до впитывания.",tip:"Не мешай рис в процессе — получится рассыпчатым, а не кашей.",sub:"Рис → булгур; горошек → кукуруза",store:"До 3 суток",portW:"~280г",accent:"#52b788"},
+  {n:59,group:"daily",title:"Творог с ягодами и орехами",meal:"breakfast",goal:"maintain",kcal:280,p:34,f:12,c:10,season:"🌍 Весь год",ingr:"Творог 5% (200г/1 порц.), Ягоды (50г), Миндаль (10г), Йогурт (30г)",steps:"Творог разомни вилкой, добавь йогурт. Сверху выложи ягоды и измельчённые орехи.",tip:"Если творог зернистый — пробей блендером. Получится текстура мусса.",sub:"Миндаль → грецкие орехи; ягоды → банан",store:"До 12 часов",portW:"~290г",accent:"#b7e4c7"},
+  {n:60,group:"daily",title:"Чечевичный суп-пюре",meal:"lunch",goal:"loss",kcal:210,p:16,f:4,c:28,season:"❄️ Зима / 🍂 Осень",ingr:"Красная чечевица (200г/3 порц.), Лук (1 шт), Томаты в соку (100г), Лимон",steps:"Обжарь лук, добавь чечевицу и томаты. Залей водой (1л), вари 20 мин. Взбей блендером. Сбрызни лимоном.",tip:"Лимон не только улучшает вкус, но и помогает железу из чечевицы лучше усваиваться.",sub:"Томаты в соку → свежие; лимон → лайм",store:"До 3 суток",portW:"~300мл",accent:"#f4a261"},
+  {n:61,group:"daily",title:"Запечённый картофель с чесноком",meal:"dinner",goal:"maintain",kcal:190,p:4,f:6,c:32,season:"🌍 Весь год",ingr:"Картофель (500г/2 порц.), Чеснок (3 зуб.), Розмарин, Масло (1 ст.л.)",steps:"Нарежь дольками, смешай с маслом, специями и раздавленным чесноком. Запекай 35 мин при 200°C.",tip:"Отвари картофель 5 мин, потом запекай — корочка будет фантастической.",sub:"Розмарин → тимьян; масло → спрей",store:"До 24 часов",portW:"~300г",accent:"#c8833a"},
+  {n:62,group:"daily",title:"Фрикадельки в томатном соусе",meal:"lunch",goal:"maintain",kcal:240,p:26,f:10,c:8,season:"🌍 Весь год",ingr:"Фарш индейки (300г/2 порц.), Яйцо (1 шт), Томатный сок (200мл), Базилик",steps:"Сформируй шарики из фарша. Выложи в кипящий томатный сок. Туши под крышкой 20 мин.",tip:"Добавь 2 ст.л. тёртого кабачка в фарш — фрикадельки станут нежнее.",sub:"Индейка → говяжий фарш",store:"До 3 суток",portW:"~250г",accent:"#d94f3d"},
+  {n:63,group:"daily",title:"Винегрет классический",meal:"snack",goal:"loss",kcal:120,p:3,f:5,c:16,season:"🌍 Весь год",ingr:"Свёкла (200г/4 порц.), Морковь (150г), Картофель (150г), Огурцы солёные (100г), Горошек",steps:"Отвари овощи, нарежь кубиком. Добавь горошек и огурцы. Заправь маслом.",tip:"Сначала заправь маслом свёклу, потом остальные овощи — не окрасятся в красный.",sub:"Картофель → пастернак (меньше крахмала)",store:"До 24 часов",portW:"~200г",accent:"#d94f3d"},
+  {n:64,group:"daily",title:"Пшённая каша с тыквой",meal:"breakfast",goal:"maintain",kcal:260,p:8,f:5,c:46,season:"🍂 Осень / ❄️ Зима",ingr:"Пшено (100г/2 порц.), Тыква (200г), Молоко (300мл), Мёд",steps:"Тыкву нарежь кубиком, вари в молоке 10 мин. Добавь пшено и вари ещё 20 мин.",tip:"Промой пшено кипятком 3–4 раза — убирает специфическую горечь крупы.",sub:"Молоко → кокосовое; мёд → корица",store:"До 24 часов",portW:"~280г",accent:"#c8833a"},
+  {n:65,group:"daily",title:"Куриная печень в сметане",meal:"lunch",goal:"maintain",kcal:220,p:30,f:10,c:4,season:"🌍 Весь год",ingr:"Печень куриная (400г/2 порц.), Сметана 10% (100г), Лук (1 шт)",steps:"Обжарь лук, добавь печень, жарь 7 мин. Влей сметану, посоли, томи под крышкой ещё 3 мин.",tip:"Не соли печень в начале — станет жёсткой. Соль только в самом конце.",sub:"Сметана → греческий йогурт",store:"До 2 суток",portW:"~250г",accent:"#e76f51"},
+  {n:66,group:"daily",title:"Салат с капустой и яблоком",meal:"snack",goal:"loss",kcal:85,p:2,f:3,c:14,season:"🌍 Весь год",ingr:"Капуста (300г/2 порц.), Яблоко (1 шт), Морковь (0.5 шт), Лимонный сок",steps:"Капусту тонко нашинкуй и помни с солью. Добавь тёртое яблоко и морковь. Заправь маслом и лимоном.",tip:"Щепотка сахара к капусте — даст сок быстрее и сбалансирует вкус.",sub:"Яблоко → груша; лимон → яблочный уксус",store:"До 12 часов",portW:"~220г",accent:"#95d5b2"},
+  {n:67,group:"daily",title:"Рыбные тефтели на пару",meal:"dinner",goal:"loss",kcal:190,p:26,f:4,c:12,season:"🌍 Весь год",ingr:"Фарш белой рыбы (400г/2 порц.), Рис варёный (50г), Лук (0.5 шт)",steps:"Смешай фарш, рис и измельчённый лук. Сформируй шарики. Готовь на пару 20 мин.",tip:"Добавь в фарш немного тёртого замороженного масла — тефтели будут сочнее.",sub:"Белая рыба → лосось (жирнее)",store:"До 2 суток",portW:"~220г",accent:"#3a6fa8"},
+  {n:68,group:"daily",title:"Овощное рагу с фасолью",meal:"dinner",goal:"loss",kcal:160,p:9,f:4,c:24,season:"☀️ Лето / 🍂 Осень",ingr:"Фасоль конс. (200г/2 порц.), Кабачок (1 шт), Баклажан (1 шт), Томатная паста",steps:"Нарежь кубиком, обжарь 10 мин. Добавь фасоль и томатную пасту. Туши под крышкой 15 мин.",tip:"Посоли баклажан и промой через 10 мин — уйдёт горечь.",sub:"Фасоль → нут; баклажан → цукини",store:"До 3 суток",portW:"~280г",accent:"#74c69d"},
+  {n:69,group:"daily",title:"Гренки с яйцом французские",meal:"breakfast",goal:"maintain",kcal:240,p:12,f:8,c:30,season:"🌍 Весь год",ingr:"Хлеб цз (4 ломт./2 порц.), Яйца (2 шт), Молоко (50мл)",steps:"Смешай яйца с молоком. Обмакни хлеб и жарь на среднем огне до румяности с двух сторон.",tip:"Добавь в яичную смесь щепотку корицы — придаёт изысканный аромат.",sub:"Хлеб цз → батон; корица → ваниль",store:"Есть горячими",portW:"~200г",accent:"#f4a261"},
+  {n:70,group:"daily",title:"Салат с тунцом и кукурузой",meal:"snack",goal:"maintain",kcal:210,p:28,f:6,c:10,season:"🌍 Весь год",ingr:"Тунец в с/с (100г/1 порц.), Кукуруза (50г), Огурец (1 шт), Яйцо (1 шт)",steps:"Тунец разомни, яйцо и огурец нарежь. Смешай с кукурузой. Заправь йогуртом.",tip:"Бери тунец «кусочками» — больше вкуса и меньше лишней воды.",sub:"Кукуруза → горошек",store:"До 12 часов",portW:"~220г",accent:"#3a6fa8"},
+  {n:71,group:"daily",title:"Рис жареный с яйцом и луком",meal:"lunch",goal:"maintain",kcal:270,p:10,f:7,c:42,season:"🌍 Весь год",ingr:"Рис варёный (300г/2 порц.), Яйца (2 шт), Зелёный лук, Соевый соус",steps:"Обжарь вчерашний рис. Влей взбитые яйца, быстро помешивая. Добавь лук и соус.",tip:"Рис должен быть вчерашним и холодным — тогда идеально обжарится.",sub:"Рис → гречка; соус → тамари",store:"До 24 часов",portW:"~300г",accent:"#52b788"},
+  {n:72,group:"daily",title:"Запечённая тыква с розмарином",meal:"snack",goal:"loss",kcal:110,p:2,f:6,c:14,season:"🍂 Осень / ❄️ Зима",ingr:"Тыква (500г/2 порц.), Чеснок (2 зуб.), Оливковое масло (1 ст.л.), Розмарин",steps:"Нарежь крупными дольками. Смешай с маслом и травами. Запекай 30 мин при 190°C.",tip:"Посыпь пармезаном за 5 мин до готовности — пикантный контраст.",sub:"Тыква → батат; розмарин → тимьян",store:"До 2 суток",portW:"~280г",accent:"#c8833a"},
+  {n:73,group:"daily",title:"Бутерброд с авокадо и яйцом",meal:"breakfast",goal:"maintain",kcal:310,p:11,f:18,c:26,season:"🌍 Весь год",ingr:"Хлеб цз (2 ломт./1 порц.), Авокадо (0.5 шт), Яйцо варёное (1 шт)",steps:"Хлеб подсуши. Авокадо разомни в пюре, намажь на хлеб. Выложи кружочки яйца.",tip:"Сбрызни авокадо лимонным соком — не потемнеет в течение часа.",sub:"Хлеб → рисовые хлебцы",store:"Есть сразу",portW:"~180г",accent:"#7aab89"},
+  {n:74,group:"daily",title:"Суп со шпинатом и яйцом",meal:"lunch",goal:"loss",kcal:140,p:8,f:6,c:14,season:"🌸 Весна / ☀️ Лето",ingr:"Шпинат замор. (200г/3 порц.), Картофель (2 шт), Яйца (2 шт), Бульон (1.5л)",steps:"Свари картофель в бульоне. Добавь шпинат на 3 мин. Влей взбитые яйца тонкой струйкой.",tip:"Мешай суп по кругу, создавая воронку — яйцо ляжет красивыми нитями.",sub:"Шпинат → щавель; картофель → кабачок",store:"До 48 часов",portW:"~300мл",accent:"#52b788"},
+  {n:75,group:"daily",title:"Куриные голени в духовке",meal:"dinner",goal:"maintain",kcal:280,p:32,f:14,c:5,season:"🌍 Весь год",ingr:"Голени (4 шт/2 порц.), Горчица (1 ст.л.), Мёд (1 ч.л.), Соевый соус (1 ст.л.)",steps:"Смешай маринад, обмажь голени. Оставь на 15 мин. Запекай при 190°C 35–40 мин.",tip:"Проткни у кости шпажкой — прозрачный сок значит курица готова и сочная.",sub:"Голени → бёдра; мёд → финиковая паста",store:"До 3 суток",portW:"~200г",accent:"#e76f51"},
+  {n:76,group:"daily",title:"Салат «Щётка» для пищеварения",meal:"snack",goal:"loss",kcal:75,p:2,f:3,c:12,season:"🌍 Весь год",ingr:"Свёкла сырая (1 шт/2 порц.), Морковь сырая (1 шт), Капуста (200г), Лимонный сок",steps:"Все овощи натри на мелкой тёрке, капусту нашинкуй. Смешай, заправь маслом и лимоном.",tip:"Дай постоять 20 мин — сырые овощи станут чуть мягче и вкуснее.",sub:"Лимон → яблочный уксус",store:"До 24 часов",portW:"~220г",accent:"#d94f3d"},
+  {n:77,group:"daily",title:"Перловка с овощами в мультиварке",meal:"dinner",goal:"maintain",kcal:220,p:7,f:5,c:36,season:"❄️ Зима",ingr:"Перловка (100г/2 порц.), Замороженные овощи (200г), Масло (1 ст.л.)",steps:"Засыпь перловку и овощи, залей 1:3. Готовь в режиме «Каша» 40 мин.",tip:"Обжарь сухую перловку 2 мин — появится ореховый привкус.",sub:"Перловка → ячневая (быстрее)",store:"До 3 суток",portW:"~280г",accent:"#7aab89"},
+  {n:78,group:"daily",title:"Творожные оладьи ленивые",meal:"breakfast",goal:"maintain",kcal:230,p:19,f:8,c:22,season:"🌍 Весь год",ingr:"Творог 5% (200г/2 порц.), Яйцо (1 шт), Мука (2 ст.л.)",steps:"Смешай все ингредиенты. Выкладывай ложкой на сковороду. Жарь по 3 мин с каждой стороны под крышкой.",tip:"Щепотка разрыхлителя — оладьи станут воздушнее.",sub:"Мука → рисовая; сахар → мёд или финиковый сироп",store:"До 2 суток",portW:"~180г",accent:"#b7e4c7"},
+  {n:79,group:"daily",title:"Яблоки запечённые с орехами",meal:"snack",goal:"maintain",kcal:145,p:2,f:7,c:20,season:"🍂 Осень / ❄️ Зима",ingr:"Яблоки (2 шт/2 порц.), Грецкие орехи (20г), Изюм (10г), Корица",steps:"Удали сердцевину яблок. Наполни орехами и изюмом. Запекай 20 мин при 180°C.",tip:"Налей в форму 50 мл яблочного сока вместо воды — аромат в 2 раза ярче.",sub:"Изюм → курага; орехи → миндаль",store:"До 24 часов",portW:"~160г",accent:"#f4a261"},
+  {n:80,group:"daily",title:"Запеканка из макарон и сыра",meal:"lunch",goal:"gain",kcal:380,p:18,f:16,c:42,season:"🌍 Весь год",ingr:"Макароны (150г/2 порц.), Сыр (100г), Яйцо (1 шт), Молоко (50мл)",steps:"Смешай варёные макароны с тёртым сыром. Залей яично-молочной смесью. Запекай 15 мин до корочки.",tip:"Смесь двух сыров (сулугуни + гауда) даёт лучшую тягучесть.",sub:"Макароны → паста из нута (без глютена)",store:"До 2 суток",portW:"~280г",accent:"#c8833a"},
+
+  // ── ГРУППА 2: ПРАЗДНИЧНЫЙ СТОЛ (81-110) ──
+  {n:81,group:"festive",title:"Долма в виноградных листьях",meal:"dinner",goal:"gain",kcal:310,p:22,f:10,c:34,season:"☀️ Лето",ingr:"Листья виноградные (30–40 шт/4 порц.), Фарш говяжий (500г), Рис (50г), Лук, Кинза",steps:"Рис залей кипятком на 10 мин, смешай с фаршем и зеленью. Заверни конвертиком. Уложи плотно, залей водой. Прижми тарелкой. Томи 50 мин.",tip:"На дно — слой «бракованных» листьев: защитят от пригорания и дадут аромат.",sub:"Говяжий фарш → бараний",store:"До 3 суток",portW:"~300г",accent:"#52b788"},
+  {n:82,group:"festive",title:"Традиционный шашлык из баранины",meal:"dinner",goal:"gain",kcal:380,p:28,f:22,c:6,season:"☀️ Лето",ingr:"Баранина (800г/3 порц.), Лук (400г), Зира, Кориандр",steps:"Нарежь мясо кубиком. Лук нарежь кольцами, посоли и помни до сока. Смешай, маринуй 4–6 часов. Жарь на углях 15 мин.",tip:"Не добавляй уксус — луковый сок лучше размягчает баранину без пересыхания.",sub:"Баранина → говядина",store:"Маринованное — до 24 ч",portW:"~260г",accent:"#e76f51"},
+  {n:83,group:"festive",title:"Ханум с тыквой и говядиной",meal:"dinner",goal:"gain",kcal:420,p:24,f:14,c:52,season:"🍂 Осень / ❄️ Зима",ingr:"Тесто (мука, вода, яйцо/4 порц.), Фарш говяжий (400г), Тыква (200г), Лук (2 шт)",steps:"Раскатай тесто в тонкий пласт. Распредели начинку слоем. Сверни свободным рулетом. Готовь на пару 45 мин.",tip:"Не сворачивай туго — тесто лопнет при расширении начинки.",sub:"Говядина → индейка",store:"До 48 часов",portW:"~350г",accent:"#c8833a"},
+  {n:84,group:"festive",title:"Запечённый лосось «Торжество»",meal:"dinner",goal:"gain",kcal:440,p:38,f:22,c:18,season:"🌍 Весь год",ingr:"Стейки лосося (400г/2 порц.), Лимон (1 шт), Мёд (1 ч.л.), Горчица (1 ч.л.)",steps:"Смажь рыбу смесью мёда и горчицы. Выложи на дольки лимона. Запекай при 200°C ровно 15 мин.",tip:"Запекай лосось на подушке из лимонов — защитит нежное филе от прилипания.",sub:"Лосось → форель",store:"До 24 часов",portW:"~220г",accent:"#3a6fa8"},
+  {n:85,group:"festive",title:"Манты ручной рубки",meal:"dinner",goal:"gain",kcal:380,p:22,f:14,c:44,season:"❄️ Зима",ingr:"Тесто/4 порц., Говядина (500г), Лук (500г), Курдюк или масло (50г)",steps:"Мясо и лук нарежь мелким кубиком 0.5 см. Слепи манты. Готовь на пару 40 мин.",tip:"Соотношение мяса и лука 1:1 — именно лук даёт тот самый легендарный сок.",sub:"Говядина → говядина+баранина 50/50",store:"В морозке до 1 мес.",portW:"~280г",accent:"#7aab89"},
+  {n:86,group:"festive",title:"Наваристая Шурпа",meal:"lunch",goal:"gain",kcal:340,p:26,f:18,c:16,season:"❄️ Зима",ingr:"Баранина на кости (600г/4 порц.), Картофель (3 шт), Перец болгарский, Морковь",steps:"Вари мясо 1.5 часа, снимая пену. Добавь крупные овощи (целиком). Вари ещё 40 мин.",tip:"Клади овощи крупно или целиком — бульон прозрачный, овощи не разварятся.",sub:"Баранина → говядина на кости",store:"До 3 суток",portW:"~400мл",accent:"#f4a261"},
+  {n:87,group:"festive",title:"Курица «Золотая корочка»",meal:"dinner",goal:"maintain",kcal:320,p:34,f:14,c:10,season:"🌍 Весь год",ingr:"Курица целая (1.5кг/4 порц.), Сл. масло (50г), Чеснок (3 зуб.), Паприка",steps:"Смешай масло с чесноком и специями. Натри курицу ПОД кожей и снаружи. Запекай 1 ч 20 мин при 180°C.",tip:"Просуши кожу бумажным полотенцем перед запеканием — залог идеального хруста.",sub:"Масло → оливковое",store:"До 2 суток",portW:"~270г",accent:"#e76f51"},
+  {n:88,group:"festive",title:"Самса из слоёного теста",meal:"snack",goal:"gain",kcal:380,p:14,f:22,c:32,season:"🌍 Весь год",ingr:"Тесто слоёное (500г/4 порц.), Фарш (300г), Лук (300г), Кунжут",steps:"Нарежь квадратами, выложи начинку, сверни треугольником. Смажь желтком, посыпь кунжутом. Запекай 25 мин при 200°C.",tip:"Посыпь чёрным кунжутом — сразу аутентичный праздничный вид.",sub:"Слоёное тесто → бездрожжевое",store:"До 2 суток",portW:"~200г",accent:"#c8833a"},
+  {n:89,group:"festive",title:"Лагман по-домашнему",meal:"lunch",goal:"gain",kcal:410,p:28,f:12,c:46,season:"❄️ Зима / 🍂 Осень",ingr:"Мясо (400г/3 порц.), Лапша (200г), Редька (100г), Сельдерей (2 стебля), Томатная паста",steps:"Обжарь мясо, добавь овощи соломкой. Залей бульоном с томатом, томи 25 мин. Лапшу вари отдельно.",tip:"Храни лапшу и подливу «ваджу» отдельно — иначе лапша разбухнет в кашу.",sub:"Лапша → соба или рисовая",store:"Подлива — до 3 суток",portW:"~350г",accent:"#e76f51"},
+  {n:90,group:"festive",title:"Фаршированные перцы «Радуга»",meal:"dinner",goal:"maintain",kcal:290,p:22,f:10,c:28,season:"☀️ Лето / 🍂 Осень",ingr:"Болгарский перец (6 шт/3 порц.), Фарш (400г), Рис (50г), Сметана (2 ст.л.)",steps:"Очисти перцы, наполни фаршем с рисом. Уложи вертикально, залей соусом. Туши 45 мин.",tip:"Срежь у перца тонкий слой снизу — устойчивость гарантирована.",sub:"Фарш → куриный; рис → гречка",store:"До 3 суток",portW:"~300г",accent:"#d94f3d"},
+  {n:91,group:"festive",title:"Мясо «по-капитански»",meal:"dinner",goal:"gain",kcal:360,p:28,f:18,c:22,season:"❄️ Зима",ingr:"Говядина (600г/4 порц.), Картофель (500г), Сыр (150г), Лук (2 шт), Йогурт+горчица",steps:"Мясо отбей, выложи слоем. Сверху лук, слайсы картофеля. Смажь соусом, посыпь сыром. Запекай 1 час при 180°C.",tip:"Накрой фольгой первые 40 мин — мясо мягкое, сыр не сгорит.",sub:"Говядина → куриное филе",store:"До 24 часов",portW:"~350г",accent:"#3a6fa8"},
+  {n:92,group:"festive",title:"Салат «Ташкент»",meal:"snack",goal:"maintain",kcal:240,p:18,f:12,c:14,season:"🌍 Весь год",ingr:"Говядина варёная (300г/3 порц.), Редька зелёная (2 шт), Лук (1 шт), Яйца (2 шт)",steps:"Редьку натри соломкой, замочи в воде. Мясо нарежь соломкой. Лук обжарь до хруста. Смешай с йогуртом.",tip:"Замочи тёртую редьку в ледяной воде 15 мин — уйдёт горечь и резкий запах.",sub:"Говядина → курица",store:"Смешивать перед подачей",portW:"~250г",accent:"#74c69d"},
+  {n:93,group:"festive",title:"Казан-кебаб домашний",meal:"dinner",goal:"gain",kcal:480,p:32,f:28,c:24,season:"❄️ Зима",ingr:"Мясо (600г/3 порц.), Картофель (600г), Зира, Кинза",steps:"Обжарь картофель целиком до корки, вынь. Обжарь мясо. Верни картофель, добавь специи и 50мл воды. Томи 30 мин.",tip:"Жарь картофель в очень горячем масле — корочка «запечатает» его.",sub:"Говядина → баранина",store:"До 48 часов",portW:"~370г",accent:"#c8833a"},
+  {n:94,group:"festive",title:"Праздничный плов",meal:"dinner",goal:"gain",kcal:420,p:24,f:12,c:54,season:"🌍 Весь год",ingr:"Рис (1кг/6 порц.), Баранина (1кг), Морковь (1кг), Масло (250мл), Зира",steps:"Сделай зирвак (мясо + лук + морковь). Засыпь рис, залей кипятком. Вари до испарения воды, накрой, томи 20 мин.",tip:"Замачивай рис в тёплой солёной воде 2 часа — идеально рассыпчатый.",sub:"Баранина → говядина",store:"До 4 суток",portW:"~300г",accent:"#52b788"},
+  {n:95,group:"festive",title:"Баранья нога в фольге",meal:"dinner",goal:"gain",kcal:310,p:32,f:20,c:0,season:"❄️ Зима",ingr:"Баранья нога (2кг/6 порц.), Чеснок (1 головка), Розмарин, Оливковое масло",steps:"Нашпигуй мясо чесноком через проколы. Натри маслом и травами. Заверни в 3 слоя фольги. Пеки 3.5 часа при 160°C.",tip:"Низкая температура долго — соединительная ткань распадётся, мясо тает во рту.",sub:"Баранина → говяжья лопатка",store:"До 3 суток",portW:"~280г",accent:"#e76f51"},
+  {n:96,group:"festive",title:"Салат «Гранатовый браслет»",meal:"snack",goal:"maintain",kcal:260,p:14,f:18,c:10,season:"❄️ Зима",ingr:"Курица варёная (300г/4 порц.), Свёкла (2 шт), Гранат (1 шт), Орехи (50г)",steps:"Выложи слои овощей и мяса вокруг стакана. Смажь йогуртом. Сверху плотно уложи зёрна граната.",tip:"Выбирай гранат «без косточек» — праздничный салат приятнее есть.",sub:"Курица → индейка",store:"До 12 часов",portW:"~220г",accent:"#d94f3d"},
+  {n:97,group:"festive",title:"Грибы фаршированные сыром",meal:"snack",goal:"maintain",kcal:180,p:12,f:14,c:3,season:"🌍 Весь год",ingr:"Шампиньоны крупные (10 шт/2 порц.), Сыр (100г), Чеснок, Зелень",steps:"Удали ножки, измельчи и обжарь. Смешай с сыром и чесноком. Наполни шляпки. Запекай 15 мин при 200°C.",tip:"Капля соевого соуса в начинке — усилит природный вкус грибов (умами).",sub:"Шампиньоны → портобелло",store:"Подавать горячими",portW:"~180г",accent:"#7aab89"},
+  {n:98,group:"festive",title:"Люля-кебаб в духовке",meal:"dinner",goal:"maintain",kcal:320,p:24,f:22,c:2,season:"🌍 Весь год",ingr:"Фарш говяжий (600г/3 порц.), Лук (200г), Кориандр, Кинза",steps:"Фарш бей об доску 10 мин до липкости. Сформируй на шпажках. Запекай на решётке 20 мин при 220°C.",tip:"Фарш должен быть очень холодным — иначе сползёт со шпажек.",sub:"Говядина → баранина+говядина 50/50",store:"До 2 суток",portW:"~250г",accent:"#e76f51"},
+  {n:99,group:"festive",title:"Рулетики из кабачков с сёмгой",meal:"snack",goal:"maintain",kcal:190,p:11,f:16,c:8,season:"☀️ Лето",ingr:"Кабачок (1 шт/2 порц.), Сёмга с/с (100г), Творожный сыр (100г)",steps:"Кабачок нарежь слайсами, быстро обжарь. Намажь сыром, положи рыбу, сверни роллом.",tip:"Жарь на сухой сковороде-гриль — закуска не будет жирной.",sub:"Сёмга → тунец; творожный сыр → рикотта",store:"До 12 часов",portW:"~180г",accent:"#3a6fa8"},
+  {n:100,group:"festive",title:"Рулет из индейки с курагой",meal:"dinner",goal:"maintain",kcal:240,p:32,f:8,c:12,season:"🌍 Весь год",ingr:"Филе индейки (600г/4 порц.), Курага (100г), Грецкие орехи (50г)",steps:"Филе разрежь, отбей. Выложи курагу и орехи. Сверни, свяжи нитью. Запекай в рукаве 1 час при 180°C.",tip:"Охлади рулет под гнётом в нитках — нарезка получится идеальной.",sub:"Курага → чернослив; орехи → фисташки",store:"До 3 суток",portW:"~220г",accent:"#c8833a"},
+  {n:101,group:"festive",title:"Чучвара в наваристом бульоне",meal:"lunch",goal:"maintain",kcal:310,p:16,f:12,c:34,season:"❄️ Зима",ingr:"Тесто/3 порц., Фарш (300г), Бульон мясной (1.5л), Томатная паста (1 ст.л.)",steps:"Слепи крошечные пельмени (1 см). Вари в бульоне с томатом 5 мин.",tip:"В одну ложку должно помещаться 4–5 чучвар — это эталон мастерства.",sub:"Говяжий фарш → бараний",store:"Заморозка — до 1 мес.",portW:"~300мл+пельмени",accent:"#7aab89"},
+  {n:102,group:"festive",title:"Стейк Рибай классика",meal:"dinner",goal:"gain",kcal:340,p:36,f:22,c:0,season:"🌍 Весь год",ingr:"Стейк рибай (300г/1 порц.), Сл. масло (20г), Чеснок, Розмарин",steps:"Жарь по 3 мин с каждой стороны. Добавь масло и чеснок, поливай мясо 1 мин. Дай отдохнуть 5 мин.",tip:"Никогда не жарь холодное мясо — достань из холодильника за час.",sub:"Рибай → стриплойн",store:"Есть сразу",portW:"~250г",accent:"#d94f3d"},
+  {n:103,group:"festive",title:"Говядина «Веллингтон» мини",meal:"dinner",goal:"gain",kcal:420,p:28,f:24,c:22,season:"❄️ Зима",ingr:"Говяжья вырезка (400г/2 порц.), Слоёное тесто (250г), Шампиньоны (200г)",steps:"Мясо обжарь целым куском. Грибы измельчи и жарь до сухости. Заверни мясо в грибы и тесто. Запекай 25 мин.",tip:"Обжарь грибы до ПОЛНОГО испарения влаги — иначе тесто размокнет.",sub:"Вырезка → вырезка телятины",store:"До 24 часов",portW:"~280г",accent:"#3a6fa8"},
+  {n:104,group:"festive",title:"Салат в ананасе «Экзотик»",meal:"snack",goal:"loss",kcal:120,p:12,f:6,c:16,season:"☀️ Лето",ingr:"Ананас (1 шт/2 порц.), Креветки (200г), Авокадо (1 шт), Лайм",steps:"Ананас разрежь, вынь мякоть. Смешай с варёными креветками и авокадо. Верни в ананас.",tip:"Используй мякоть краёв — сердцевина слишком жёсткая для салата.",sub:"Креветки → кальмар",store:"До 2 часов",portW:"~250г",accent:"#74c69d"},
+  {n:105,group:"festive",title:"Сыр Халуми с мёдом и орехами",meal:"snack",goal:"maintain",kcal:290,p:18,f:22,c:10,season:"🌍 Весь год",ingr:"Сыр Халуми (250г/2 порц.), Мёд (1 ст.л.), Орехи (20г)",steps:"Нарежь ломтями 1 см. Жарь по 1.5 мин с каждой стороны до полосок. Полей мёдом.",tip:"Жарь на сухой раскалённой сковороде — не плавится, получает хрустящую корку.",sub:"Халуми → адыгейский сыр",store:"Есть горячим",portW:"~150г",accent:"#f4a261"},
+  {n:106,group:"festive",title:"Лимонад «Мятная свежесть»",meal:"snack",goal:"loss",kcal:45,p:0,f:0,c:11,season:"☀️ Лето",ingr:"Лимон (2 шт/4 порц.), Мята (1 пучок), Мёд (2 ст.л.), Газированная вода (1.5л)",steps:"Помни лимон и мяту с мёдом в графине. Залей водой, добавь лёд.",tip:"Сначала разотри мяту с мёдом — эфирные масла выйдут быстрее.",sub:"Лимон → лайм + апельсин",store:"До 24 часов",portW:"~400мл",accent:"#95d5b2"},
+  {n:107,group:"festive",title:"Тыквенный пирог по-американски",meal:"snack",goal:"gain",kcal:280,p:6,f:12,c:42,season:"🍂 Осень",ingr:"Песочная основа, Тыквенное пюре (400г/6 порц.), Сливки 20% (200мл), Яйца (2 шт), Корица",steps:"Основу подпеки 10 мин. Пюре взбей с яйцами и сливками. Влей в основу. Запекай 40 мин при 170°C.",tip:"Начинка должна «дрожать» в центре при вынимании — застынет при остывании.",sub:"Сливки → кокосовое молоко",store:"До 4 суток в холоде",portW:"~150г",accent:"#c8833a"},
+  {n:108,group:"festive",title:"Шоколадный фондан",meal:"snack",goal:"gain",kcal:360,p:5,f:24,c:32,season:"🌍 Весь год",ingr:"Шоколад 70% (100г/2 порц.), Масло (60г), Яйца (2 шт), Мука (40г)",steps:"Шоколад и масло растопи. Смешай с яйцами и мукой. Пеки ровно 8–10 мин при 200°C.",tip:"Формочки смажь маслом и присыпь какао — фондан выскочит идеально.",sub:"Шоколад 70% → 85% (меньше сахара)",store:"Есть горячим",portW:"~100г",accent:"#1b4332"},
+  {n:109,group:"festive",title:"Ленивая пахлава",meal:"snack",goal:"gain",kcal:450,p:6,f:28,c:44,season:"🌍 Весь год",ingr:"Тесто фило (1 уп/8 порц.), Грецкие орехи (300г), Сл. масло (150г), Мёд (100г)",steps:"Сложи листы, смазывая маслом и посыпая орехами. Разрежь на ромбы. Запекай 30 мин. Залей горячим медовым сиропом.",tip:"Поливай горячую пахлаву ХОЛОДНЫМ сиропом — тесто останется хрустящим.",sub:"Грецкие орехи → фисташки",store:"До 7 суток",portW:"~120г",accent:"#f4a261"},
+  {n:110,group:"festive",title:"Медовик «Без раскатки»",meal:"snack",goal:"gain",kcal:390,p:5,f:16,c:54,season:"🌍 Весь год",ingr:"Мёд (3 ст.л./6 порц.), Яйца (3 шт), Мука (200г), Сметана (400г), Сахарная пудра",steps:"Сделай жидкое медовое тесто. Намазывай кругами на пергамент. Пеки по 5 мин. Смажь сметанным кремом.",tip:"Жирная сметана от 25% для крема — коржи пропитаются, но торт не поплывёт.",sub:"Сметана → маскарпоне",store:"До 3 суток в холоде",portW:"~150г",accent:"#c8833a"},
+
+  // ── НАБОР МАССЫ: дополнительные (111-120) ──
+  {n:111,group:"gain",title:"Ризотто с курицей и пармезаном",meal:"lunch",goal:"gain",kcal:480,p:34,f:14,c:54,season:"🌍 Весь год",ingr:"Рис арборио (200г/2 порц.), Куриное филе (300г), Пармезан (40г), Бульон (600мл)",steps:"Обжарь курицу. Всыпь рис, прогрей 1 мин. Добавляй горячий бульон по 100мл, помешивая. Вмешай пармезан.",tip:"Никогда не промывай рис для ризотто — крахмал создаёт кремовую текстуру.",sub:"Пармезан → грана падано; курица → грибы",store:"До 24 часов",portW:"~320г",accent:"#f4a261"},
+  {n:112,group:"gain",title:"Паста болоньезе ПП",meal:"lunch",goal:"gain",kcal:460,p:36,f:10,c:56,season:"🌍 Весь год",ingr:"Паста т/с (150г/2 порц.), Фарш говяжий (300г), Томаты в соку (300г), Чеснок",steps:"Обжарь фарш с чесноком, разбивая комочки. Добавь томаты, туши 20 мин. Отвари пасту аль денте, смешай.",tip:"Добавь 50мл воды от варки пасты в соус — крахмал делает его шелковистым.",sub:"Говядина → индейка; паста → из нута",store:"Соус до 3 суток",portW:"~300г",accent:"#d94f3d"},
+  {n:113,group:"gain",title:"Булгур с курицей и овощами",meal:"lunch",goal:"gain",kcal:400,p:34,f:8,c:50,season:"🌍 Весь год",ingr:"Булгур (180г/2 порц.), Куриное бедро (400г), Морковь, Болг. перец",steps:"Обжарь кусочки курицы с овощами. Всыпь булгур, залей водой 1:1.5. Вари под крышкой 15 мин.",tip:"Булгур не требует промывки — он уже прошёл обработку паром.",sub:"Булгур → киноа (+белок)",store:"До 3 суток",portW:"~300г",accent:"#74c69d"},
+  {n:114,group:"gain",title:"Творог с арахисовой пастой и бананом",meal:"breakfast",goal:"gain",kcal:420,p:28,f:18,c:36,season:"🌍 Весь год",ingr:"Творог 9% (200г/1 порц.), Арахисовая паста (2 ст.л.), Банан (1 шт)",steps:"Смешай творог с пастой. Нарежь банан кружочками, выложи сверху.",tip:"Арахисовая паста только из арахиса — без пальмового масла и сахара.",sub:"Арахисовая паста → миндальная; банан → финики",store:"До 12 часов",portW:"~280г",accent:"#c8833a"},
+  {n:115,group:"gain",title:"Говяжья печень с луком и гречкой",meal:"dinner",goal:"gain",kcal:380,p:32,f:12,c:34,season:"🌍 Весь год",ingr:"Говяжья печень (400г/2 порц.), Лук (2 шт), Сметана 10% (50г), Гречка (150г)",steps:"Нарежь печень соломкой, обжарь лук до золотистого. Добавь печень, жарь 5 мин. Влей сметану, томи 3 мин. Подавай с гречкой.",tip:"Замочи печень в молоке на 30 мин — уйдёт горечь.",sub:"Говяжья → куриная (нежнее); сметана → йогурт",store:"До 2 суток",portW:"~280г",accent:"#e76f51"},
+  {n:116,group:"gain",title:"Омлет с индейкой и сыром",meal:"breakfast",goal:"gain",kcal:360,p:32,f:22,c:4,season:"🌍 Весь год",ingr:"Яйца (3 шт/1 порц.), Индейка варёная (100г), Сыр твёрдый (30г), Зелень",steps:"Взбей яйца, вылей на сковороду. На одну половину положи нарезанную индейку и сыр. Сложи пополам.",tip:"Сыр посыпай в самом конце — расплавится от тепла омлета идеально.",sub:"Индейка → курица; сыр → фета",store:"Есть сразу",portW:"~220г",accent:"#52b788"},
+  {n:117,group:"gain",title:"Сэндвич с тунцом и авокадо",meal:"snack",goal:"gain",kcal:380,p:28,f:16,c:32,season:"🌍 Весь год",ingr:"Хлеб цз (2 ломт./1 порц.), Тунец (100г), Авокадо (0.5 шт), Салат, Горчица",steps:"Тунец разомни с горчицей. Авокадо нарежь слайсами. Собери сэндвич.",tip:"Горчица вместо майонеза — кислотность раскрывает вкус тунца.",sub:"Хлеб → тортилья; тунец → лосось",store:"До 4 часов",portW:"~240г",accent:"#3a6fa8"},
+  {n:118,group:"gain",title:"Картофель с говядиной в казане",meal:"dinner",goal:"gain",kcal:450,p:30,f:16,c:44,season:"❄️ Зима",ingr:"Говядина (500г/3 порц.), Картофель (600г), Лук (2 шт), Морковь (1 шт)",steps:"Обжарь говядину до корки. Добавь лук и морковь. Засыпь картофель дольками, залей бульоном. Томи 1 час.",tip:"Не мешай первые 20 мин — образуется румяная корочка на мясе.",sub:"Говядина → баранина",store:"До 2 суток",portW:"~360г",accent:"#c8833a"},
+  {n:119,group:"gain",title:"Паста с индейкой и сыром",meal:"lunch",goal:"gain",kcal:430,p:36,f:12,c:48,season:"🌍 Весь год",ingr:"Паста т/с (160г/2 порц.), Индейка (300г), Сыр (50г), Сливки 10% (100мл)",steps:"Обжарь кусочки индейки. Влей сливки и доведи до кипения. Смешай с варёной пастой. Посыпь сыром.",tip:"Аль денте — паста должна быть чуть жёсткой в центре: она дойдёт в соусе.",sub:"Индейка → курица; сливки → натуральный йогурт",store:"До 2 суток",portW:"~320г",accent:"#7aab89"},
+  {n:120,group:"gain",title:"Гречка с яйцом и сливочным маслом",meal:"breakfast",goal:"gain",kcal:350,p:14,f:14,c:42,season:"🌍 Весь год",ingr:"Гречка (150г/2 порц.), Яйца (2 шт), Сл. масло (10г), Соль",steps:"Свари рассыпчатую гречку. Добавь масло. Сделай яичницу-болтунью. Смешай с гречкой.",tip:"Масло добавляй в горячую гречку — равномерно пропитает каждое зёрнышко.",sub:"Сливочное → топлёное; яйцо → тофу",store:"До 2 суток",portW:"~260г",accent:"#52b788"},
+];
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let norm = 1800;
+let dayItems = []; // {id, title, kcal, p, f, c}
+let activeMeal = 'all';
+let activeGoal = 'all';
+
+// ══════════════════════════════════════
+// RENDER RECIPES
+// ══════════════════════════════════════
+function parseIngredients(ingr, portW){
+  // Try to extract portion count from ingredient string e.g. "Тыква (300г/2 порц.)"
+  const portMatch = ingr.match(/\/(\d+)\s*порц[иь.]/);
+  let portions = portMatch ? portMatch[1] : null;
+
+  // If no portions in ingredients, try to extract from portW e.g. "3 шт / ~180г"
+  if(!portions && portW){
+    const pwMatch = portW.match(/^(\d+)\s*шт/);
+    if(pwMatch) portions = pwMatch[1];
+  }
+
+  // Remove "/X порц." patterns from ingredient string
+  const clean = ingr
+    .replace(/\/\d+\s*порц[иь.]?/g, '')
+    .replace(/\/\d+\s*шт/g, '')
+    .replace(/\(\s*\)/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  return {portions, clean};
+}
+
+function renderAll(){
+  const grid = document.getElementById('rgrid');
+  grid.innerHTML = '';
+  RECIPES.forEach(r => {
+    const mealLabel = {breakfast:'🌅 Завтрак',lunch:'☀️ Обед',dinner:'🌙 Ужин',snack:'🍎 Перекус'}[r.meal];
+    const goalLabel = {loss:'📉 Похудение',maintain:'⚖️ Поддержание',gain:'📈 Набор массы'}[r.goal];
+    const isAdded = dayItems.some(d=>d.id===r.n);
+    const {portions, clean} = parseIngredients(r.ingr, r.portW);
+    const portHeader = portions
+      ? `📦 Состав на ${portions} порц.`
+      : '📦 Состав';
+
+    // Meal prep badge
+    const mealPrepBadge = r.store && r.store !== 'Есть сразу' && r.store !== 'Сразу пить' && r.store !== 'Не хранится' && r.store !== 'Есть горячим' && r.store !== 'Есть горячими'
+      ? `<div class="mealprep-box"><span class="mp-icon">❄️</span><div><div class="mp-title">Хранение · Meal Prep</div><div class="mp-row"><span>⏱ ${r.store}</span>${r.portW ? `<span>⚖️ Порция: ${r.portW}</span>` : ''}</div></div></div>`
+      : `<div class="mealprep-box mp-fresh"><span class="mp-icon">🍽️</span><div><div class="mp-title">Подача</div><div class="mp-row"><span>${r.store}</span>${r.portW ? `<span>⚖️ ${r.portW}</span>` : ''}</div></div></div>`;
+
+    grid.innerHTML += `
+    <div class="rc" id="rc${r.n}" data-kcal="${r.kcal}" data-meal="${r.meal}" data-goal="${r.goal}">
+      <div class="rc-accent" style="background:${r.accent}"></div>
+      <div class="rc-head">
+        <div class="rc-num">${r.n}</div>
+        <div>
+          <div class="rc-title">${r.title}</div>
+          <div class="rc-meta">${r.season} · ${mealLabel} · ${goalLabel}</div>
+        </div>
+      </div>
+      <div class="kbzhu">
+        <div class="ki"><div class="kv">${r.kcal}</div><div class="kl">ккал</div></div>
+        <div class="ki"><div class="kv">${r.p}г</div><div class="kl">белки</div></div>
+        <div class="ki"><div class="kv">${r.f}г</div><div class="kl">жиры</div></div>
+        <div class="ki"><div class="kv">${r.c}г</div><div class="kl">углев.</div></div>
+      </div>
+      <div class="rc-body">
+        <div class="ingr-box"><div class="lbl">${portHeader}</div>${clean}</div>
+        <div class="sub-box"><div class="lbl">🔄 Замены</div>${r.sub}</div>
+        <div><div class="lbl">🍳 Процесс</div><div class="steps-txt">${r.steps}</div></div>
+        <div class="tip-box">👨‍🍳 ${r.tip}</div>
+        ${mealPrepBadge}
+      </div>
+      <div class="rc-footer">
+        <span class="badge meal-tag">${mealLabel}</span>
+        <span class="badge" style="background:${r.goal==='loss'?'#fce4ec;color:#c2185b':r.goal==='gain'?'#e8f5e9;color:#2e7d32':'#fff8e1;color:#f57f17'}">${goalLabel}</span>
+        <button class="add-btn${isAdded?' added':''}" onclick="toggleDay(${r.n})" id="btn${r.n}">
+          ${isAdded ? '✓ Добавлено' : '+ В день'}
+        </button>
+      </div>
+    </div>`;
+  });
+  applyFilters();
+}
+
+// ══════════════════════════════════════
+// FILTERS
+// ══════════════════════════════════════
+function applyFilters(){
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const minCal = parseInt(document.getElementById('rangeMin').value);
+  const maxCal = parseInt(document.getElementById('rangeMax').value);
+  let visible = 0;
+
+  RECIPES.forEach(r => {
+    const el = document.getElementById('rc'+r.n);
+    if(!el) return;
+    const matchSearch = !search || r.title.toLowerCase().includes(search) || r.ingr.toLowerCase().includes(search);
+    const matchCal = r.kcal >= minCal && r.kcal <= maxCal;
+    const matchMeal = activeMeal === 'all' || r.meal === activeMeal;
+    const matchGoal = activeGoal === 'all' || r.goal === activeGoal;
+    const show = matchSearch && matchCal && matchMeal && matchGoal;
+    el.classList.toggle('hidden', !show);
+    if(show) visible++;
+  });
+
+  document.getElementById('filterCount').textContent = `Найдено: ${visible}`;
+  document.getElementById('resultsInfo').textContent =
+    visible < RECIPES.length ? `Показано ${visible} из ${RECIPES.length} рецептов` : `Все ${RECIPES.length} рецептов`;
+  document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+}
+
+function updateRange(){
+  let min = parseInt(document.getElementById('rangeMin').value);
+  let max = parseInt(document.getElementById('rangeMax').value);
+  if(min > max-30 && min > 0){ document.getElementById('rangeMin').value = max-30; min = max-30; }
+  const pct1 = min/500*100;
+  const pct2 = max/500*100;
+  document.getElementById('rangeFill').style.left = pct1+'%';
+  document.getElementById('rangeFill').style.width = (pct2-pct1)+'%';
+  document.getElementById('calVals').textContent = `${min}–${max} ккал`;
+  applyFilters();
+}
+
+function toggleMeal(val, btn){
+  activeMeal = val;
+  document.querySelectorAll('.fc-group:first-child .fchip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  applyFilters();
+}
+
+function toggleGoal(val, btn){
+  if(activeGoal === val){
+    activeGoal = 'all';
+    btn.classList.remove('on','on-amber');
+  } else {
+    activeGoal = val;
+    document.querySelectorAll('.fc-group:last-child .fchip').forEach(c=>c.classList.remove('on','on-amber'));
+    btn.classList.add('on','on-amber');
+  }
+  applyFilters();
+}
+
+// ══════════════════════════════════════
+// PLANNER
+// ══════════════════════════════════════
+function toggleDay(id){
+  const r = RECIPES.find(x=>x.n===id);
+  if(!r) return;
+  const idx = dayItems.findIndex(d=>d.id===id);
+  if(idx > -1){
+    dayItems.splice(idx,1);
+    document.getElementById('btn'+id).textContent = '+ В день';
+    document.getElementById('btn'+id).classList.remove('added');
+  } else {
+    dayItems.push({id:r.n, title:r.title, kcal:r.kcal, p:r.p, f:r.f, c:r.c});
+    document.getElementById('btn'+id).textContent = '✓ Добавлено';
+    document.getElementById('btn'+id).classList.add('added');
+  }
+  updatePlannerUI();
+  updateBadge();
+}
+
+function updatePlannerUI(){
+  const totalKcal = dayItems.reduce((s,d)=>s+d.kcal,0);
+  const totalP = dayItems.reduce((s,d)=>s+d.p,0);
+  const totalF = dayItems.reduce((s,d)=>s+d.f,0);
+  const totalC = dayItems.reduce((s,d)=>s+d.c,0);
+  const pct = Math.min(totalKcal/norm*100, 100);
+  const remain = norm - totalKcal;
+
+  document.getElementById('pCurrent').innerHTML = `${totalKcal} <span>ккал</span>`;
+  document.getElementById('pNorm').textContent = `из ${norm} ккал`;
+  document.getElementById('pBar').style.width = pct+'%';
+  document.getElementById('pBar').className = 'progress-bar' + (pct>100?' over':pct>85?' near':'');
+  document.getElementById('pRemain').textContent = remain > 0
+    ? `Ещё ${remain} ккал — остаток на сегодня`
+    : `Превышение на ${Math.abs(remain)} ккал`;
+  document.getElementById('pProt').textContent = totalP+'г';
+  document.getElementById('pFat').textContent = totalF+'г';
+  document.getElementById('pCarb').textContent = totalC+'г';
+
+  const items = document.getElementById('plannerItems');
+  if(dayItems.length === 0){
+    items.innerHTML = '<div class="planner-empty"><span>🍽️</span>Добавь блюда из каталога</div>';
+    return;
+  }
+  items.innerHTML = dayItems.map(d=>`
+    <div class="pi">
+      <div class="pi-num">${d.id}</div>
+      <div class="pi-info">
+        <div class="pi-title">${d.title}</div>
+        <div class="pi-kcal">${d.kcal} ккал · Б${d.p} · Ж${d.f} · У${d.c}</div>
+      </div>
+      <button class="pi-remove" onclick="toggleDay(${d.id})">×</button>
+    </div>`).join('') +
+    `<div style="padding:12px 0;border-top:2px solid var(--sage);margin-top:4px;display:flex;justify-content:space-between;align-items:center">
+      <strong style="font-size:14px">Итого</strong>
+      <strong style="font-size:16px;color:var(--amber)">${totalKcal} ккал</strong>
+    </div>`;
+}
+
+function updateBadge(){
+  const badge = document.getElementById('pBadge');
+  badge.textContent = dayItems.length;
+  badge.style.display = dayItems.length > 0 ? 'flex' : 'none';
+}
+
+function setNorm(val, btn){
+  norm = val;
+  document.getElementById('normInput').value = val;
+  document.querySelectorAll('.norm-preset').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  updatePlannerUI();
+}
+
+function setNormCustom(val){
+  norm = parseInt(val) || 1800;
+  document.querySelectorAll('.norm-preset').forEach(b=>b.classList.remove('on'));
+  updatePlannerUI();
+}
+
+function openPlanner(){ document.getElementById('plannerOverlay').classList.add('open'); }
+function closePlanner(){ document.getElementById('plannerOverlay').classList.remove('open'); }
+function closePlannerOutside(e){ if(e.target===e.currentTarget) closePlanner(); }
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function go(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  if(btn) btn.classList.add('on');
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+updateRange();
+renderAll();
+</script>
+</body>
+</html>
