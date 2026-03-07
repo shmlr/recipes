@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Чистый Дом — Система уборки</title>
+<style>
+:root{
+  --cream:#faf6ef;
+  --white:#ffffff;
+  --rust:#c9622f;
+  --rust-light:#f0ddd3;
+  --sage:#4a7c59;
+  --sage-light:#ddeee3;
+  --sand:#e8c49a;
+  --dark:#2d2520;
+  --ink:#3d3530;
+  --muted:#9b8f87;
+  --border:#e8e0d5;
+  --shadow:0 2px 16px rgba(45,37,32,.09);
+  --shadow-lg:0 8px 32px rgba(45,37,32,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── HEADER ── */
+.header{
+  background:var(--dark);
+  padding:0;
+  position:sticky;
+  top:0;
+  z-index:200;
+  box-shadow:0 2px 20px rgba(0,0,0,.25);
+}
+.header-inner{
+  display:flex;
+  align-items:center;
+  height:56px;
+  gap:0;
+}
+.logo-block{
+  background:var(--white);
+  height:56px;
+  display:flex;
+  align-items:center;
+  padding:0 18px;
+  border-radius:0 16px 16px 0;
+  gap:10px;
+  flex-shrink:0;
+  box-shadow:3px 0 12px rgba(0,0,0,.15);
+}
+.logo-icon{font-size:22px;line-height:1}
+.logo-text{
+  font-family:Georgia,serif;
+  font-size:15px;
+  font-weight:700;
+  color:var(--dark);
+  line-height:1.1;
+}
+.logo-sub{font-size:9px;font-weight:400;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.nav-tabs{
+  display:flex;
+  gap:2px;
+  padding:0 12px;
+  overflow-x:auto;
+  flex:1;
+  scrollbar-width:none;
+}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{
+  flex-shrink:0;
+  padding:6px 13px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  color:rgba(255,255,255,.55);
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  transition:all .2s;
+  white-space:nowrap;
+}
+.nav-tab:hover{color:rgba(255,255,255,.85)}
+.nav-tab.on{background:var(--rust);color:#fff}
+.progress-btn{
+  flex-shrink:0;
+  margin-right:12px;
+  padding:7px 14px;
+  border-radius:20px;
+  background:var(--sage);
+  color:#fff;
+  font-size:12px;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+
+/* ── PAGES ── */
+.page{display:none;min-height:calc(100vh - 56px);padding-bottom:40px}
+.page.on{display:block}
+
+/* ── HERO ── */
+.hero{
+  background:linear-gradient(135deg,var(--dark) 0%,#4a3a32 100%);
+  padding:48px 24px 56px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-content{max-width:680px;margin:0 auto;position:relative;text-align:center}
+.hero-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(201,98,47,.25);
+  border:1px solid rgba(201,98,47,.4);
+  color:var(--sand);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  padding:5px 14px;
+  border-radius:20px;
+  margin-bottom:20px;
+}
+.hero h1{
+  font-family:Georgia,serif;
+  font-size:clamp(28px,5vw,46px);
+  font-weight:700;
+  color:#fff;
+  line-height:1.15;
+  margin-bottom:12px;
+}
+.hero h1 em{color:var(--sand);font-style:normal}
+.hero p{
+  color:rgba(255,255,255,.65);
+  font-size:15px;
+  line-height:1.6;
+  margin-bottom:32px;
+}
+.apt-picker{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.apt-btn{
+  padding:12px 20px;
+  border-radius:12px;
+  border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.8);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  text-align:center;
+}
+.apt-btn:hover{border-color:var(--sand);background:rgba(232,196,154,.12);color:#fff}
+.apt-btn.on{border-color:var(--rust);background:var(--rust);color:#fff}
+.apt-btn .ab-icon{font-size:24px;display:block;margin-bottom:4px}
+.hero-stats{
+  display:flex;
+  gap:24px;
+  justify-content:center;
+  margin-top:28px;
+  flex-wrap:wrap;
+}
+.hs{
+  text-align:center;
+  color:rgba(255,255,255,.6);
+  font-size:12px;
+}
+.hs b{display:block;font-size:22px;color:#fff;font-family:Georgia,serif}
+
+/* ── SECTION ── */
+.section{max-width:780px;margin:0 auto;padding:32px 20px 0}
+.section-title{
+  font-family:Georgia,serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--dark);
+  margin-bottom:6px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.section-sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+
+/* ── SCHEDULE CARDS ── */
+.freq-tabs{
+  display:flex;
+  gap:6px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+.freq-tab{
+  padding:7px 16px;
+  border-radius:20px;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .18s;
+}
+.freq-tab.on{border-color:var(--rust);background:var(--rust);color:#fff}
+
+.task-card{
+  background:var(--white);
+  border-radius:14px;
+  padding:0;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  margin-bottom:10px;
+}
+.tc-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  cursor:pointer;
+  user-select:none;
+}
+.tc-icon{
+  width:36px;height:36px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  flex-shrink:0;
+}
+.tc-label{font-size:14px;font-weight:700;color:var(--dark);flex:1}
+.tc-time{font-size:11px;color:var(--muted);font-weight:600}
+.tc-prog{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  color:var(--muted);
+}
+.tc-prog-bar{
+  width:48px;height:4px;
+  background:var(--border);
+  border-radius:2px;
+  overflow:hidden;
+}
+.tc-prog-fill{height:100%;background:var(--sage);border-radius:2px;transition:width .3s}
+.tc-body{
+  padding:0 16px 14px;
+  display:none;
+}
+.tc-body.open{display:block}
+.task-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 0;
+  border-top:1px solid var(--border);
+  cursor:pointer;
+}
+.task-cb{
+  width:20px;height:20px;
+  border-radius:6px;
+  border:2px solid var(--border);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+  font-size:11px;
+  color:transparent;
+}
+.task-item.done .task-cb{
+  background:var(--sage);
+  border-color:var(--sage);
+  color:#fff;
+}
+.task-item.done .task-text{
+  text-decoration:line-through;
+  color:var(--muted);
+}
+.task-text{font-size:13px;color:var(--ink);flex:1}
+.task-tip{font-size:11px;color:var(--rust);font-style:italic}
+
+/* ── ZONES ── */
+.zone-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:12px;
+}
+.zone-card{
+  background:var(--white);
+  border-radius:14px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  transition:all .2s;
+  border:2px solid transparent;
+}
+.zone-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.zone-card.active{border-color:var(--rust)}
+.zone-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+}
+.zone-ico{
+  width:40px;height:40px;
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+}
+.zone-name{font-size:15px;font-weight:700;color:var(--dark)}
+.zone-prog-wrap{
+  height:5px;
+  background:var(--border);
+  border-radius:3px;
+  overflow:hidden;
+  margin-bottom:6px;
+}
+.zone-prog-fill{
+  height:100%;
+  border-radius:3px;
+  background:linear-gradient(90deg,var(--rust),var(--sand));
+  transition:width .3s;
+}
+.zone-prog-txt{font-size:11px;color:var(--muted)}
+
+/* Zone detail panel */
+.zone-detail{
+  background:var(--white);
+  border-radius:14px;
+  padding:20px;
+  box-shadow:var(--shadow);
+  margin-top:16px;
+  display:none;
+}
+.zone-detail.open{display:block}
+.zone-detail-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+}
+.zone-detail-title{
+  font-family:Georgia,serif;
+  font-size:18px;
+  font-weight:700;
+  color:var(--dark);
+  display:flex;align-items:center;gap:8px;
+}
+.close-btn{
+  width:28px;height:28px;
+  border-radius:50%;
+  background:var(--border);
+  border:none;
+  cursor:pointer;
+  font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.zone-subtabs{
+  display:flex;
+  gap:6px;
+  margin-bottom:14px;
+}
+.zone-subtab{
+  padding:5px 12px;
+  border-radius:16px;
+  border:1.5px solid var(--border);
+  background:transparent;
+  font-size:11px;font-weight:600;
+  color:var(--muted);cursor:pointer;
+  transition:all .15s;
+}
+.zone-subtab.on{border-color:var(--rust);background:var(--rust-light);color:var(--rust)}
+
+/* ── TIMER ── */
+.timer-wrap{
+  max-width:380px;
+  margin:0 auto;
+  text-align:center;
+  padding:20px 0;
+}
+.timer-zone-select{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-bottom:28px;
+}
+.tz-btn{
+  padding:8px 16px;
+  border-radius:20px;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  font-size:12px;font-weight:600;
+  color:var(--muted);cursor:pointer;
+  transition:all .18s;
+}
+.tz-btn.on{border-color:var(--rust);background:var(--rust);color:#fff}
+
+.timer-ring{
+  position:relative;
+  width:220px;height:220px;
+  margin:0 auto 24px;
+}
+.timer-ring svg{transform:rotate(-90deg)}
+.ring-bg{stroke:var(--border);fill:none}
+.ring-fill{
+  stroke:var(--rust);
+  fill:none;
+  stroke-linecap:round;
+  transition:stroke-dashoffset .5s linear;
+}
+.timer-center{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.timer-time{
+  font-family:Georgia,serif;
+  font-size:44px;
+  font-weight:700;
+  color:var(--dark);
+  line-height:1;
+}
+.timer-label{font-size:12px;color:var(--muted);font-weight:600;margin-top:4px}
+.timer-btns{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.tbtn{
+  padding:12px 28px;
+  border-radius:12px;
+  font-size:14px;font-weight:700;
+  border:none;cursor:pointer;
+  transition:all .18s;
+}
+.tbtn-start{background:var(--rust);color:#fff}
+.tbtn-start:hover{background:#b5552a}
+.tbtn-reset{background:var(--border);color:var(--ink)}
+.tbtn-reset:hover{background:#d9d0c5}
+.timer-tasks{
+  background:var(--white);
+  border-radius:14px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  text-align:left;
+}
+.timer-tasks-title{
+  font-size:12px;
+  font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  margin-bottom:10px;
+}
+.timer-task-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 0;
+  font-size:13px;
+  color:var(--ink);
+  border-top:1px solid var(--border);
+  cursor:pointer;
+}
+.timer-task-item.done .timer-task-cb{background:var(--sage);border-color:var(--sage);color:#fff}
+.timer-task-item.done span{text-decoration:line-through;color:var(--muted)}
+.timer-task-cb{
+  width:18px;height:18px;
+  border-radius:5px;
+  border:2px solid var(--border);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:transparent;
+  transition:all .15s;
+}
+
+/* ── DECLUTTER ── */
+.declutter-hero{
+  background:linear-gradient(135deg,#3a2e28,#5c4438);
+  border-radius:16px;
+  padding:24px;
+  margin-bottom:20px;
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+}
+.declutter-hero::after{
+  content:'🗂';
+  position:absolute;
+  right:20px;bottom:-10px;
+  font-size:80px;
+  opacity:.15;
+}
+.declutter-hero h2{
+  font-family:Georgia,serif;
+  font-size:22px;margin-bottom:8px;
+}
+.declutter-hero p{font-size:13px;opacity:.75;line-height:1.5}
+.week-grid{display:flex;flex-direction:column;gap:10px}
+.week-card{
+  background:var(--white);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.week-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  cursor:pointer;
+}
+.week-num{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:var(--rust);
+  color:#fff;
+  font-family:Georgia,serif;
+  font-size:16px;
+  font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.week-info{flex:1}
+.week-title{font-size:14px;font-weight:700;color:var(--dark)}
+.week-sub{font-size:11px;color:var(--muted)}
+.week-status{
+  font-size:11px;
+  padding:3px 10px;
+  border-radius:20px;
+  background:var(--sage-light);
+  color:var(--sage);
+  font-weight:700;
+}
+.week-body{padding:0 16px 14px;display:none}
+.week-body.open{display:block}
+.day-row{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:8px 0;
+  border-top:1px solid var(--border);
+  cursor:pointer;
+}
+.day-num{
+  width:24px;height:24px;
+  border-radius:6px;
+  background:var(--rust-light);
+  color:var(--rust);
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.day-task{font-size:13px;color:var(--ink);flex:1;line-height:1.4}
+.day-cb{
+  width:20px;height:20px;
+  border-radius:6px;
+  border:2px solid var(--border);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:transparent;
+  transition:all .15s;
+  margin-top:2px;
+}
+.day-row.done .day-cb{background:var(--sage);border-color:var(--sage);color:#fff}
+.day-row.done .day-task{text-decoration:line-through;color:var(--muted)}
+
+/* ── KONMARI GUIDE ── */
+.km-section{margin-top:24px}
+.km-title{
+  font-family:Georgia,serif;
+  font-size:18px;color:var(--dark);
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.km-cards{display:flex;flex-direction:column;gap:10px}
+.km-card{
+  background:var(--white);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+}
+.km-num{
+  width:32px;height:32px;
+  border-radius:50%;
+  background:var(--rust);
+  color:#fff;
+  font-family:Georgia,serif;
+  font-size:14px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.km-content{}
+.km-card-title{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.km-card-text{font-size:12px;color:var(--muted);line-height:1.5}
+.km-card-tip{
+  font-size:11px;
+  color:var(--rust);
+  font-style:italic;
+  margin-top:4px;
+}
+
+/* ── PROGRESS MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:500;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--white);
+  border-radius:20px 20px 0 0;
+  padding:28px 24px 36px;
+  width:100%;
+  max-width:520px;
+  max-height:80vh;
+  overflow-y:auto;
+}
+.modal-handle{
+  width:40px;height:4px;
+  background:var(--border);
+  border-radius:2px;
+  margin:0 auto 20px;
+}
+.modal-title{
+  font-family:Georgia,serif;
+  font-size:20px;
+  color:var(--dark);
+  margin-bottom:20px;
+  text-align:center;
+}
+.prog-ring-wrap{
+  display:flex;
+  justify-content:center;
+  margin-bottom:20px;
+  position:relative;
+}
+.prog-ring-label{
+  position:absolute;
+  inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  font-family:Georgia,serif;
+}
+.prog-ring-pct{font-size:32px;font-weight:700;color:var(--dark)}
+.prog-ring-sub{font-size:11px;color:var(--muted)}
+.prog-cats{display:flex;flex-direction:column;gap:10px}
+.prog-cat{display:flex;align-items:center;gap:12px}
+.prog-cat-icon{font-size:18px;width:28px;text-align:center}
+.prog-cat-label{font-size:13px;font-weight:600;color:var(--ink);flex:1}
+.prog-cat-bar{
+  flex:2;
+  height:6px;
+  background:var(--border);
+  border-radius:3px;
+  overflow:hidden;
+}
+.prog-cat-fill{height:100%;background:linear-gradient(90deg,var(--rust),var(--sand));border-radius:3px;transition:width .5s}
+.prog-cat-val{font-size:11px;color:var(--muted);width:36px;text-align:right}
+.modal-close{
+  width:100%;
+  padding:13px;
+  border-radius:12px;
+  background:var(--dark);
+  color:#fff;
+  font-size:14px;font-weight:700;
+  border:none;cursor:pointer;
+  margin-top:20px;
+}
+
+/* ── UTILS ── */
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;font-weight:700;
+  background:var(--rust-light);
+  color:var(--rust);
+}
+.chip.green{background:var(--sage-light);color:var(--sage)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:500px){
+  .hero{padding:32px 16px 40px}
+  .section{padding:24px 14px 0}
+  .zone-grid{grid-template-columns:1fr 1fr}
+  .apt-btn{padding:10px 14px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="logo-block">
+      <span class="logo-icon">🏠</span>
+      <div class="logo-text">
+        Чистый дом
+        <div class="logo-sub">система уборки</div>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab on" onclick="goPage('schedule',this)">📅 Расписание</button>
+      <button class="nav-tab" onclick="goPage('zones',this)">🗂 По зонам</button>
+      <button class="nav-tab" onclick="goPage('timer',this)">⏱ Таймер</button>
+      <button class="nav-tab" onclick="goPage('declutter',this)">✨ Расхламление</button>
+    </div>
+    <button class="progress-btn" onclick="openProgress()">
+      <span>📊</span>
+      <span id="progLabel">0%</span>
+    </button>
+  </div>
+</div>
+
+<!-- РАСПИСАНИЕ -->
+<div class="page on" id="page-schedule">
+  <div class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">✦ система уборки</div>
+      <h1>Чистый дом<br>без <em>стресса</em></h1>
+      <p>Выбери тип квартиры — и получи персональный план уборки с чек-листами по каждой зоне</p>
+      <div class="apt-picker">
+        <div class="apt-btn on" onclick="setApt('studio',this)">
+          <span class="ab-icon">🏠</span>Студия
+        </div>
+        <div class="apt-btn" onclick="setApt('1k',this)">
+          <span class="ab-icon">🛋️</span>1-комнатная
+        </div>
+        <div class="apt-btn" onclick="setApt('2k',this)">
+          <span class="ab-icon">🛏️</span>2-комнатная
+        </div>
+        <div class="apt-btn" onclick="setApt('3k',this)">
+          <span class="ab-icon">🏡</span>3+ комнаты
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="hs"><b>4</b>частоты</div>
+        <div class="hs"><b id="taskCount">28</b>задач</div>
+        <div class="hs"><b>5</b>зон</div>
+        <div class="hs"><b>30</b>дней расхламления</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📅 Расписание уборки</div>
+    <div class="section-sub">Нажми на карточку чтобы открыть список задач — отмечай выполненные</div>
+    <div class="freq-tabs">
+      <div class="freq-tab on" onclick="setFreq('daily',this)">Каждый день</div>
+      <div class="freq-tab" onclick="setFreq('weekly',this)">Каждую неделю</div>
+      <div class="freq-tab" onclick="setFreq('monthly',this)">Раз в месяц</div>
+      <div class="freq-tab" onclick="setFreq('seasonal',this)">Сезонно</div>
+    </div>
+    <div id="taskList"></div>
+  </div>
+</div>
+
+<!-- ЗОНЫ -->
+<div class="page" id="page-zones">
+  <div class="section" style="padding-top:28px">
+    <div class="section-title">🗂 Уборка по зонам</div>
+    <div class="section-sub">Выбери зону — получи полный чек-лист задач с советами</div>
+    <div class="zone-grid" id="zoneGrid"></div>
+    <div class="zone-detail" id="zoneDetail"></div>
+  </div>
+</div>
+
+<!-- ТАЙМЕР -->
+<div class="page" id="page-timer">
+  <div class="section" style="padding-top:28px">
+    <div class="section-title">⏱ Таймер 15 минут</div>
+    <div class="section-sub">Метод «одна зона за раз» — 15 минут полной концентрации</div>
+    <div class="timer-wrap">
+      <div class="timer-zone-select" id="timerZonePicker"></div>
+      <div class="timer-ring">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <circle class="ring-bg" cx="110" cy="110" r="95" stroke-width="10"/>
+          <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="95"
+            stroke-width="10"
+            stroke-dasharray="597"
+            stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-center">
+          <div class="timer-time" id="timerDisplay">15:00</div>
+          <div class="timer-label" id="timerZoneLabel">Выбери зону</div>
+        </div>
+      </div>
+      <div class="timer-btns">
+        <button class="tbtn tbtn-start" id="timerStartBtn" onclick="toggleTimer()">▶ Старт</button>
+        <button class="tbtn tbtn-reset" onclick="resetTimer()">↺ Сброс</button>
+      </div>
+      <div class="timer-tasks" id="timerTaskList">
+        <div class="timer-tasks-title">Что делать за эти 15 минут</div>
+        <div style="font-size:13px;color:var(--muted);text-align:center;padding:12px 0">
+          Выбери зону выше 👆
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- РАСХЛАМЛЕНИЕ -->
+<div class="page" id="page-declutter">
+  <div class="section" style="padding-top:28px">
+    <div class="declutter-hero">
+      <h2>30 дней расхламления</h2>
+      <p>Каждый день — одна простая задача. К концу месяца дом станет легче, а голова — свободнее</p>
+    </div>
+    <div class="week-grid" id="weekGrid"></div>
+
+    <div class="km-section">
+      <div class="km-title">✨ Метод КонМари — пошагово</div>
+      <div class="km-cards" id="kmCards"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeProgress(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Мой прогресс</div>
+    <div class="prog-ring-wrap">
+      <svg width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg)">
+        <circle cx="70" cy="70" r="58" stroke="var(--border)" stroke-width="10" fill="none"/>
+        <circle cx="70" cy="70" r="58" id="progRingFill"
+          stroke="var(--rust)" stroke-width="10" fill="none"
+          stroke-linecap="round"
+          stroke-dasharray="364"
+          stroke-dashoffset="364"/>
+      </svg>
+      <div class="prog-ring-label">
+        <div class="prog-ring-pct" id="progPct">0%</div>
+        <div class="prog-ring-sub">выполнено</div>
+      </div>
+    </div>
+    <div class="prog-cats" id="progCats"></div>
+    <button class="modal-close" onclick="closeProgress()">Закрыть</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════
+// DATA
+// ══════════════════════════════════
+// Задачи: base = для всех, extra_1k/2k/3k = добавляются к базе
+const TASKS_RAW = {
+  daily:[
+    {zone:'kitchen',icon:'🍳',color:'#fde8d8',label:'Кухня — каждый день',
+      time:{studio:'5–7 мин','1k':'5–7 мин','2k':'7–10 мин','3k':'10–12 мин'},
+      base:[
+        {id:'d1',t:'Помыть посуду или загрузить в посудомойку',tip:''},
+        {id:'d2',t:'Протереть плиту и варочную поверхность',tip:'Пока тёплая — убирается в разы легче'},
+        {id:'d3',t:'Убрать продукты со стола в холодильник / шкаф',tip:''},
+        {id:'d4',t:'Вытереть столешницу влажной тряпкой',tip:'Микрофибра без моющего — идеально'},
+        {id:'d4b',t:'Протереть раковину и смеситель',tip:'Сухой тряпкой в конце — не будет подтёков'},
+        {id:'d4c',t:'Вынести мусор если заполнен пакет',tip:'Не жди когда будет «полный» — запах появляется раньше'},
+      ],
+      extra_2k:[
+        {id:'d4d',t:'Протереть обеденный стол в столовой зоне',tip:''},
+      ],
+      extra_3k:[
+        {id:'d4e',t:'Протереть барную стойку или остров',tip:''},
+        {id:'d4f',t:'Убрать детский стол после еды',tip:''},
+      ]
+    },
+    {zone:'general',icon:'🧹',color:'#ddeee3',label:'Общий порядок — каждый день',
+      time:{studio:'5 мин','1k':'7 мин','2k':'10 мин','3k':'15 мин'},
+      base:[
+        {id:'d5',t:'Убрать разбросанные вещи по местам',tip:'Правило «взял — положи на место»'},
+        {id:'d6',t:'Проветрить квартиру 10–15 минут',tip:'Утром или перед сном — свежий воздух важнее влажной уборки'},
+        {id:'d7',t:'Протереть раковину в ванной',tip:'30 секунд утром — и ванная всегда выглядит чистой'},
+        {id:'d8',t:'Убрать обувь и одежду в прихожей',tip:''},
+        {id:'d8b',t:'Заправить кровать',tip:'Комната выглядит чистой на 70% от одного этого'},
+      ],
+      extra_1k:[
+        {id:'d8c',t:'Убрать диван — поправить подушки и пледы',tip:''},
+      ],
+      extra_2k:[
+        {id:'d8d',t:'Убрать игрушки или вещи в гостиной',tip:''},
+        {id:'d8e',t:'Протереть журнальный столик',tip:''},
+      ],
+      extra_3k:[
+        {id:'d8f',t:'Быстро пройтись по всем комнатам — убрать лишнее',tip:'5 минут обхода экономят час уборки'},
+        {id:'d8g',t:'Убрать в детской комнате',tip:''},
+        {id:'d8h',t:'Проверить второй санузел',tip:''},
+      ]
+    },
+  ],
+  weekly:[
+    {zone:'floor',icon:'🧺',color:'#ddeee3',label:'Полы — раз в неделю',
+      time:{studio:'15–20 мин','1k':'20–25 мин','2k':'30–40 мин','3k':'45–60 мин'},
+      base:[
+        {id:'w1',t:'Пропылесосить все комнаты',tip:'Начинай с дальней — двигайся к выходу'},
+        {id:'w2',t:'Вымыть полы во всех комнатах',tip:'Две воды: первая моет, вторая ополаскивает'},
+        {id:'w3',t:'Вымыть пол в ванной и туалете',tip:''},
+        {id:'w3b',t:'Пропылесосить ковёр или дорожку',tip:'Пылесось вдоль и поперёк ворса'},
+        {id:'w3c',t:'Протереть плинтусы в коридоре',tip:'Влажной тряпкой раз в неделю — без накопления пыли'},
+      ],
+      extra_1k:[
+        {id:'w3d',t:'Пропылесосить диван и кресла',tip:'Насадка-щётка — по швам и под подушками'},
+      ],
+      extra_2k:[
+        {id:'w3e',t:'Вымести или пропылесосить балкон',tip:''},
+        {id:'w3f',t:'Протереть лестничный порог',tip:''},
+      ],
+      extra_3k:[
+        {id:'w3g',t:'Пропылесосить второй балкон или лоджию',tip:''},
+        {id:'w3h',t:'Вымыть пол в кладовке или постирочной',tip:''},
+        {id:'w3i',t:'Протереть ступени если есть лестница',tip:''},
+      ]
+    },
+    {zone:'bathroom',icon:'🚿',color:'#dde8f5',label:'Ванная и санузел',
+      time:{studio:'15–20 мин','1k':'15–20 мин','2k':'25–30 мин','3k':'35–45 мин'},
+      base:[
+        {id:'w5',t:'Почистить унитаз внутри щёткой',tip:'Средство залей и оставь на 5 мин — потом легко'},
+        {id:'w5b',t:'Протереть унитаз снаружи и сиденье',tip:'Не забудь петли и место крепления'},
+        {id:'w6',t:'Отмыть раковину с чистящим средством',tip:''},
+        {id:'w7',t:'Почистить душевую кабину или ванну',tip:'Гель + пауза 5 мин = минимум усилий'},
+        {id:'w7b',t:'Протереть кафель вокруг ванны и душа',tip:''},
+        {id:'w8',t:'Протереть зеркало',tip:'Газета + чуть уксуса — ноль разводов'},
+        {id:'w8b',t:'Протереть смеситель до блеска',tip:'Лимонная кислота растворяет известковый налёт'},
+        {id:'w9',t:'Сменить полотенца',tip:''},
+        {id:'w9b',t:'Помыть пол в ванной',tip:'Не забудь за унитазом и под тумбой'},
+      ],
+      extra_2k:[
+        {id:'w9c',t:'Убрать второй санузел (если раздельный)',tip:''},
+        {id:'w9d',t:'Протереть полки с косметикой',tip:''},
+      ],
+      extra_3k:[
+        {id:'w9e',t:'Убрать второй полноценный санузел',tip:''},
+        {id:'w9f',t:'Протереть зеркало в гостевом туалете',tip:''},
+        {id:'w9g',t:'Заменить освежитель воздуха',tip:''},
+      ]
+    },
+    {zone:'bedroom',icon:'🛏️',color:'#f0ddd3',label:'Спальня',
+      time:{studio:'10 мин','1k':'15 мин','2k':'20 мин','3k':'30 мин'},
+      base:[
+        {id:'w10',t:'Сменить постельное бельё',tip:'Идеальный ритм — раз в неделю'},
+        {id:'w11',t:'Протереть пыль на тумбочках и комоде',tip:''},
+        {id:'w11b',t:'Протереть пыль на шкафу (сверху)',tip:'Частая ошибка — про верх шкафа забывают'},
+        {id:'w12',t:'Убрать под кроватью — пропылесосить',tip:''},
+        {id:'w13',t:'Разобрать «стул с одеждой»',tip:'У каждого есть такой стул 😄'},
+        {id:'w13b',t:'Проветрить подушку и одеяло',tip:'Вывеси на 20 мин — или пройдись пароочистителем'},
+      ],
+      extra_2k:[
+        {id:'w13c',t:'Убрать в детской или гостевой спальне',tip:''},
+        {id:'w13d',t:'Протереть пыль на письменном столе',tip:''},
+      ],
+      extra_3k:[
+        {id:'w13e',t:'Убрать во второй спальне',tip:''},
+        {id:'w13f',t:'Убрать в кабинете или гардеробной',tip:''},
+        {id:'w13g',t:'Разложить вещи в гардеробной по местам',tip:''},
+      ]
+    },
+    {zone:'dust',icon:'✨',color:'#fdf5e0',label:'Пыль и поверхности',
+      time:{studio:'10 мин','1k':'12 мин','2k':'18 мин','3k':'25 мин'},
+      base:[
+        {id:'w14',t:'Протереть телевизор и технику',tip:'Только сухой микрофиброй — без влаги'},
+        {id:'w15',t:'Протереть подоконники',tip:''},
+        {id:'w16',t:'Вытереть пыль с полок',tip:'Двигай предметы — не обтирай вокруг них'},
+        {id:'w16b',t:'Протереть выключатели и розетки',tip:'Рассадник бактерий — чаще чем думаешь'},
+        {id:'w16c',t:'Протереть дверные ручки',tip:'Дезинфицирующий спрей раз в неделю'},
+        {id:'w16d',t:'Пройтись по дверным полотнам — следы и пятна',tip:''},
+      ],
+      extra_1k:[
+        {id:'w16e',t:'Протереть пыль с карнизов и гардин',tip:''},
+      ],
+      extra_2k:[
+        {id:'w16f',t:'Протереть рамы картин и зеркал',tip:''},
+        {id:'w16g',t:'Протереть пыль с декора и статуэток',tip:'Кисточка для рисования — идеальный инструмент'},
+      ],
+      extra_3k:[
+        {id:'w16h',t:'Пройтись по всем комнатам с электростатической салфеткой',tip:''},
+        {id:'w16i',t:'Протереть пыль с книжных полок',tip:''},
+      ]
+    },
+    {zone:'kitchen_w',icon:'🍽️',color:'#fde8d8',label:'Кухня — раз в неделю',
+      time:{studio:'10 мин','1k':'10 мин','2k':'15 мин','3k':'15 мин'},
+      base:[
+        {id:'w17',t:'Вымыть микроволновку изнутри',tip:'Кружка воды с лимоном — 3 мин в микро, потом легко протереть'},
+        {id:'w17b',t:'Протереть холодильник снаружи',tip:''},
+        {id:'w17c',t:'Протереть фасады нижних шкафов',tip:''},
+        {id:'w17d',t:'Вымыть заглушки и поддон плиты',tip:''},
+        {id:'w17e',t:'Протереть мойку чистящим средством',tip:'Паста из соды + лимонный сок убирает пятна'},
+        {id:'w17f',t:'Проверить и выбросить испортившиеся продукты',tip:''},
+      ],
+      extra_2k:[],
+      extra_3k:[
+        {id:'w17g',t:'Протереть барную стойку или кухонный остров',tip:''},
+      ]
+    },
+  ],
+  monthly:[
+    {zone:'deep_kitchen',icon:'🧽',color:'#fde8d8',label:'Глубокая уборка кухни',
+      time:{studio:'40 мин','1k':'45 мин','2k':'60 мин','3k':'70 мин'},
+      base:[
+        {id:'m1',t:'Вымыть окна на кухне изнутри',tip:''},
+        {id:'m2',t:'Полностью разобрать и вымыть холодильник',tip:'Вынь все полки и ящики — мой отдельно'},
+        {id:'m3',t:'Почистить духовку изнутри',tip:'Пищевая сода + уксус на ночь = минимум усилий'},
+        {id:'m3b',t:'Почистить вытяжку и фильтр',tip:'Фильтр замочи в горячей воде с содой на 20 мин'},
+        {id:'m3c',t:'Протереть верх холодильника',tip:'Там всегда слой жирной пыли'},
+        {id:'m3d',t:'Протереть фасады всех шкафов изнутри и снаружи',tip:''},
+        {id:'m3e',t:'Вымыть мусорное ведро с дезинфекцией',tip:''},
+        {id:'m3f',t:'Разобрать и помыть ящик с приборами',tip:''},
+      ],
+      extra_2k:[
+        {id:'m3g',t:'Вымыть обеденный стол полностью с обезжиривателем',tip:''},
+      ],
+      extra_3k:[
+        {id:'m3h',t:'Протереть кухонный остров со всех сторон',tip:''},
+        {id:'m3i',t:'Вымыть панорамные окна на кухне',tip:''},
+      ]
+    },
+    {zone:'deep_rooms',icon:'🛋️',color:'#ddeee3',label:'Глубокая уборка комнат',
+      time:{studio:'30 мин','1k':'40 мин','2k':'60 мин','3k':'90 мин'},
+      base:[
+        {id:'m4',t:'Убрать за и под крупной мебелью',tip:'Хотя бы раз в месяц — пыль накапливается быстро'},
+        {id:'m4b',t:'Протереть плинтусы во всех комнатах',tip:'Влажная тряпка + зубная щётка для углов'},
+        {id:'m4c',t:'Протереть батареи',tip:'Кисть или фен — выдуй пыль между секциями'},
+        {id:'m4d',t:'Вымыть все зеркала и стеклянные поверхности',tip:''},
+        {id:'m4e',t:'Протереть лопасти вентилятора или люстру',tip:'Наволочка на лопасть — пыль не сыплется вниз'},
+        {id:'m4f',t:'Постирать чехлы на подушках дивана',tip:''},
+        {id:'m4g',t:'Протереть раму и стёкла входной двери',tip:''},
+      ],
+      extra_1k:[
+        {id:'m4h',t:'Вымыть окно в комнате изнутри',tip:''},
+      ],
+      extra_2k:[
+        {id:'m4i',t:'Вымыть окна в обеих комнатах',tip:''},
+        {id:'m4j',t:'Почистить балконную дверь и раму',tip:''},
+      ],
+      extra_3k:[
+        {id:'m4k',t:'Вымыть окна во всех комнатах',tip:''},
+        {id:'m4l',t:'Протереть пыль в кладовке/гардеробной',tip:''},
+        {id:'m4m',t:'Убрать детскую глубоко — под кроватью, полки',tip:''},
+        {id:'m4n',t:'Протереть раздвижные двери или перегородки',tip:''},
+      ]
+    },
+    {zone:'order',icon:'📦',color:'#fdf5e0',label:'Порядок и организация',
+      time:{studio:'20 мин','1k':'25 мин','2k':'35 мин','3k':'45 мин'},
+      base:[
+        {id:'m7',t:'Разобрать один ящик или полку',tip:'По одному в месяц — дом меняется незаметно'},
+        {id:'m8',t:'Проверить запасы бытовой химии и докупить',tip:''},
+        {id:'m9',t:'Выбросить просроченное из аптечки',tip:''},
+        {id:'m10',t:'Разобрать «ящик всего» на кухне',tip:'У всех есть такой ящик 😄'},
+        {id:'m10b',t:'Проверить и выбросить старые пакеты и коробки',tip:''},
+        {id:'m10c',t:'Разобрать прикроватные тумбочки',tip:''},
+        {id:'m10d',t:'Почистить стиральную машину (барабан + манжета)',tip:'Режим самоочистки + лимонная кислота'},
+        {id:'m10e',t:'Протереть посудомойку внутри (если есть)',tip:'Стакан уксуса на дно + пустой цикл'},
+      ],
+      extra_2k:[
+        {id:'m10f',t:'Разобрать детские вещи — убрать то что мало',tip:''},
+      ],
+      extra_3k:[
+        {id:'m10g',t:'Разобрать гардеробную — убрать лишнее',tip:''},
+        {id:'m10h',t:'Проверить кладовку — выбросить ненужное',tip:''},
+        {id:'m10i',t:'Разобрать подсобку или постирочную',tip:''},
+      ]
+    },
+  ],
+  seasonal:[
+    {zone:'seasonal_main',icon:'🌿',color:'#ddeee3',label:'Генеральная — весь дом',
+      time:{studio:'3–4 часа','1k':'4–5 часов','2k':'6–8 часов','3k':'Целый день'},
+      base:[
+        {id:'s1',t:'Вымыть все окна снаружи',tip:'Или вызови клинера — стоит того'},
+        {id:'s2',t:'Разобрать гардероб — сменить сезонную одежду',tip:'Убери то что не носила 2 года'},
+        {id:'s3',t:'Полностью разобрать холодильник и морозилку',tip:'Разморозь морозилку если есть иней'},
+        {id:'s4',t:'Химчистка или стирка подушек и одеял',tip:'Раз в сезон — это гигиена, а не прихоть'},
+        {id:'s4b',t:'Постирать шторы или сдать в химчистку',tip:''},
+        {id:'s5',t:'Разобрать антресоли и кладовку полностью',tip:'Всё вынуть, помыть полки, вернуть нужное'},
+        {id:'s6',t:'Прочистить вентиляционные решётки',tip:'Снять, замочить в мыльной воде на час'},
+        {id:'s7',t:'Почистить стиральную машину полностью',tip:'Лимонная кислота на горячий цикл 90°'},
+        {id:'s8',t:'Помыть жалюзи или протереть рулонные шторы',tip:''},
+        {id:'s8b',t:'Почистить ковры (химчистка или аренда машины)',tip:''},
+        {id:'s8c',t:'Протереть все розетки, выключатели, рамки',tip:''},
+        {id:'s8d',t:'Вымыть люстры и плафоны',tip:''},
+        {id:'s8e',t:'Обработать швы в ванной от плесени',tip:'Отбеливатель в швы, смыть через 30 мин'},
+        {id:'s8f',t:'Проверить и смазать петли всех дверей',tip:'Масло WD-40 — тишина в доме'},
+      ],
+      extra_2k:[
+        {id:'s8g',t:'Помыть балкон полностью — пол, стены, окна',tip:''},
+        {id:'s8h',t:'Разобрать второй шкаф или комод',tip:''},
+      ],
+      extra_3k:[
+        {id:'s8i',t:'Помыть оба балкона / лоджию',tip:''},
+        {id:'s8j',t:'Генеральная уборка в кладовке',tip:''},
+        {id:'s8k',t:'Разобрать гараж или кладовую в подъезде',tip:''},
+        {id:'s8l',t:'Вымыть все окна в детских комнатах',tip:''},
+        {id:'s8m',t:'Почистить второй холодильник если есть',tip:''},
+      ]
+    },
+  ]
+};
+
+// Формируем финальный объект задач с учётом типа квартиры
+function buildTasks(apt){
+  const result = {};
+  const extras = {studio:[],  '1k':['extra_1k'], '2k':['extra_1k','extra_2k'], '3k':['extra_1k','extra_2k','extra_3k']};
+  const keys = extras[apt]||[];
+  for(const freq in TASKS_RAW){
+    result[freq] = TASKS_RAW[freq].map(group=>{
+      let tasks = [...group.base];
+      keys.forEach(key=>{ if(group[key]) tasks = [...tasks,...group[key]]; });
+      return {...group, tasks, time: group.time[apt]||group.time['1k']};
+    });
+  }
+  return result;
+}
+
+let TASKS = buildTasks('studio');
+
+const ZONES = [
+  {id:'kitchen',name:'Кухня',icon:'🍳',color:'#fde8d8',
+    quick:['Помыть посуду','Протереть плиту','Вытереть столешницу','Протереть раковину и смеситель','Убрать продукты со стола','Протереть фасады нижних шкафов','Вынести мусор','Протереть варочную панель'],
+    deep:['Полностью вымыть плиту и решётки','Почистить духовку изнутри','Полностью разобрать холодильник','Вымыть все фасады шкафов','Очистить вытяжку и фильтр','Вымыть пол на кухне','Протереть верх холодильника','Разобрать ящики с посудой и приборами','Вымыть микроволновку изнутри','Протереть верхние шкафы снаружи'],
+    tips:['Держи на плите только то чем пользуешься каждый день — свободная плита моется за 30 секунд','Раковина без посуды = кухня выглядит чистой на 80%','Застели полку под мойкой силиконовым ковриком — легко вынуть и помыть','Спрей для обезжиривания всегда должен быть под рукой','Лимонная кислота в чайнике раз в месяц — никакого налёта','Кухонные полотенца меняй каждые 2 дня — они рассадник бактерий']
+  },
+  {id:'bathroom',name:'Ванная',icon:'🚿',color:'#dde8f5',
+    quick:['Протереть раковину','Протереть зеркало','Собрать мусор','Сменить полотенца','Протереть смеситель','Протереть край ванны или душевой','Убрать флаконы и вернуть на место'],
+    deep:['Отчистить унитаз изнутри и снаружи','Вымыть раковину с чистящим средством','Вымыть ванну или душевую полностью','Протереть весь кафель','Отмыть стеклянную дверь душа от налёта','Вымыть пол','Разобрать полки с косметикой','Протереть шкафчик внутри','Почистить слив от волос','Обработать швы от плесени'],
+    tips:['Силиконовый скребок после каждого душа — никакого известкового налёта никогда','Зеркало — газета + немного уксуса — ноль разводов','Спрей + салфетка рядом с раковиной — уборка займёт 30 секунд','Таблетка для унитаза в бачок — сам чистится при каждом сливе','Лимонная кислота на металлические смесители — блестят как новые']
+  },
+  {id:'bedroom',name:'Спальня',icon:'🛏️',color:'#f0ddd3',
+    quick:['Заправить кровать','Убрать одежду в шкаф','Проветрить 10 мин','Протереть тумбочки','Убрать стаканы и мусор','Поправить подушки и плед','Убрать телефон с зарядкой на место'],
+    deep:['Сменить постельное бельё','Протереть всю пыль со всех поверхностей','Убрать под кроватью с пылесосом','Разобрать шкаф с одеждой','Протереть верх шкафа','Разобрать тумбочки','Постирать наволочки отдельно','Проветрить подушку и одеяло','Протереть зеркало','Разобрать «стул с одеждой»'],
+    tips:['Заправленная кровать = комната выглядит чистой — это важнее чем пыль на полке','Корзина для одежды у кровати — лучшая инвестиция до 500₽','Под кроватью — только плоские ящики с чётко определёнными вещами','Одно зеркало без разводов создаёт ощущение чистоты во всей комнате','Меняй бельё раз в неделю — клещи не успеют размножиться']
+  },
+  {id:'living',name:'Гостиная',icon:'🛋️',color:'#ddeee3',
+    quick:['Убрать вещи на свои места','Протереть экран ТВ','Поправить подушки и пледы на диване','Убрать стаканы и тарелки','Протереть журнальный столик','Сложить книги и пульты','Протереть подоконник'],
+    deep:['Пропылесосить диван и кресла по швам','Протереть всю мебель от пыли','Протереть ТВ и технику сухой микрофиброй','Протереть подоконники','Вымыть пол с перемещением мебели','Протереть стёкла и рамы','Разобрать полки и стеллажи','Постирать чехлы и пледы','Протереть люстру и светильники','Убрать за диваном'],
+    tips:['Корзина для пультов и мелочи на столике — порядок поддерживается сам','Пылесось диван раз в 2 недели — пылевые клещи реальны и невидимы','Свечи и живые растения создают ощущение уюта и чистоты','Правило: всё что лежит не на своём месте больше 2 дней — найди ему место','Протирай ТВ только сухой тряпкой — никакой влаги']
+  },
+  {id:'hall',name:'Прихожая',icon:'🚪',color:'#fdf5e0',
+    quick:['Убрать обувь в шкаф','Повесить верхнюю одежду','Протереть зеркало','Подмести или пропылесосить пол','Убрать сумки и рюкзаки на крючки','Протереть полочку'],
+    deep:['Полностью разобрать шкаф с одеждой','Почистить обувь','Вымыть пол и плинтусы','Разобрать полку с сумками','Протереть зеркало от разводов','Разобрать ключи и мелочи','Выбросить пакеты которые «пригодятся»','Протереть входную дверь изнутри','Убрать сезонную обувь в коробки','Протереть коврик или постирать'],
+    tips:['Полка для обуви у двери = никогда не будет бардака','Крючок для сумки — сумки не на полу никогда','Выброси обувь которую не носила 2 сезона — освободи место для себя','Зонты сушатся в специальной подставке — не на полу','Мини-зеркало у двери — выходишь собранной']
+  },
+];
+
+const DECLUTTER_WEEKS = [
+  {week:1,title:'Неделя 1 — Кухня',sub:'Самое простое место для старта',color:'#fde8d8',days:[
+    {d:1,t:'Выбрось просроченные продукты из шкафов и холодильника'},
+    {d:2,t:'Избавься от посуды которую не используешь (треснутые тарелки, лишние кружки)'},
+    {d:3,t:'Разбери ящик с «всяким разным» — оставь только нужное'},
+    {d:4,t:'Выбрось пакеты с пакетами — оставь 10 штук'},
+    {d:5,t:'Разбери полку со специями — выброси просроченное и дубли'},
+    {d:6,t:'Избавься от посуды для хранения без крышек (или крышек без посуды)'},
+    {d:7,t:'Разбери бытовую химию — выброси то что не использовала год'},
+  ]},
+  {week:2,title:'Неделя 2 — Одежда',sub:'Самая сложная — зато потом легко',color:'#dde8f5',days:[
+    {d:8,t:'Вынь всё из шкафа и разложи на кровати'},
+    {d:9,t:'Отложи то что не носила больше 2 лет'},
+    {d:10,t:'Разбери нижнее бельё — выброси потёртое и то что не по размеру'},
+    {d:11,t:'Разбери носки и колготки — выброси дырявые и одиночные'},
+    {d:12,t:'Перебери сумки — оставь 3–5 которыми реально пользуешься'},
+    {d:13,t:'Разбери шарфы, шапки, перчатки — одна шкатулка максимум'},
+    {d:14,t:'Пакет с отложенной одеждой — сразу отдать или продать'},
+  ]},
+  {week:3,title:'Неделя 3 — Ванная и косметика',sub:'Здесь обычно самое большое захламление',color:'#ddeee3',days:[
+    {d:15,t:'Выброси просроченную косметику и уходовые средства'},
+    {d:16,t:'Разбери аптечку — выброси просроченное и то что уже не нужно'},
+    {d:17,t:'Избавься от пустых или почти пустых флаконов'},
+    {d:18,t:'Перебери полотенца — выброси те что уже «не гостевые»'},
+    {d:19,t:'Разбери ящик под раковиной'},
+    {d:20,t:'Избавься от косметики которую не используешь (пусть даже дорогой)'},
+    {d:21,t:'Разбери маникюрные принадлежности — выброси старые лаки'},
+  ]},
+  {week:4,title:'Неделя 4 — Всё остальное',sub:'Финишная прямая!',color:'#fdf5e0',days:[
+    {d:22,t:'Разбери книги — оставь только любимые (книги можно сдать в библиотеку)'},
+    {d:23,t:'Разбери документы — уничтожь ненужные бумаги'},
+    {d:24,t:'Перебери провода и зарядки — выброси от устройств которых нет'},
+    {d:25,t:'Разбери «полку памяти» — магниты, сувениры, безделушки'},
+    {d:26,t:'Выброси старые журналы и газеты'},
+    {d:27,t:'Разбери «зону хаоса» — коридор, антресоли, кладовка'},
+    {d:28,t:'Перебери детские игрушки или старые вещи — отдай нуждающимся'},
+  ]},
+  {week:5,title:'Финал — Поддержание',sub:'Правила которые сохранят результат навсегда',color:'#f0ddd3',days:[
+    {d:29,t:'Установи правило «одно входит — одно выходит»'},
+    {d:30,t:'Сфотографируй результат и гордись собой 🎉'},
+  ]},
+];
+
+const KM_CARDS = [
+  {n:'01',title:'Делай всё сразу по категориям, не по комнатам',text:'Собери ВСЮ одежду из всей квартиры — потом ВСЮ посуду. Так виден реальный объём.',tip:'Не заканчивай категорию на середине — иначе эффект теряется'},
+  {n:'02',title:'Задавай только один вопрос: «Это приносит мне радость?»',text:'Держи вещь в руках. Если внутри нет отклика — благодари и отдавай.',tip:'Для утилитарных вещей спроси: «Я этим реально пользуюсь?»'},
+  {n:'03',title:'Правильный порядок категорий',text:'1. Одежда → 2. Книги → 3. Документы → 4. Разное → 5. Памятные вещи. Начинай с простого — с «сентиментальным» заканчивай.',tip:'Фото и письма — в самом конце, когда уже натренирован «отпускать»'},
+  {n:'04',title:'У каждой вещи — своё место',text:'Когда всё убрано — определи конкретное место для каждого предмета. Не «примерно здесь», а точно.',tip:'Вертикальное хранение одежды — видишь всё сразу и ничего не теряется'},
+  {n:'05',title:'Хранить нужно то, что оставила — не то, от чего избавилась',text:'Сначала реши что остаётся. Потом думай как хранить. Не наоборот.',tip:'Коробки и органайзеры покупай в последнюю очередь'},
+];
+
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let aptType = 'studio';
+let freqType = 'daily';
+let doneIds = new Set(JSON.parse(localStorage.getItem('ch_done')||'[]'));
+let activeZone = null;
+let activeZoneSubtab = 'quick';
+let timerZone = null;
+let timerSeconds = 15*60;
+let timerMax = 15*60;
+let timerRunning = false;
+let timerInterval = null;
+
+function saveProgress(){
+  localStorage.setItem('ch_done', JSON.stringify([...doneIds]));
+  updateProgressLabel();
+}
+
+// ══════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════
+function goPage(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+
+// ══════════════════════════════════
+// APARTMENT TYPE
+// ══════════════════════════════════
+function setApt(type, btn){
+  aptType = type;
+  document.querySelectorAll('.apt-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  TASKS = buildTasks(type);
+  // Count all tasks across all frequencies
+  let total = 0;
+  Object.values(TASKS).forEach(groups=>groups.forEach(g=>total+=g.tasks.length));
+  document.getElementById('taskCount').textContent = total;
+  renderTasks();
+}
+
+// ══════════════════════════════════
+// SCHEDULE / TASKS
+// ══════════════════════════════════
+function setFreq(f, btn){
+  freqType = f;
+  document.querySelectorAll('.freq-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderTasks();
+}
+
+function renderTasks(){
+  const list = document.getElementById('taskList');
+  const data = TASKS[freqType];
+  list.innerHTML = data.map(group => {
+    const done = group.tasks.filter(t=>doneIds.has(t.id)).length;
+    const pct = group.tasks.length ? Math.round(done/group.tasks.length*100) : 0;
+    const timeLabel = typeof group.time === 'string' ? group.time : (group.time[aptType]||'');
+    return `
+    <div class="task-card">
+      <div class="tc-head" onclick="toggleCard(this)">
+        <div class="tc-icon" style="background:${group.color}">${group.icon}</div>
+        <div style="flex:1">
+          <div class="tc-label">${group.label}</div>
+          <div class="tc-time">⏱ ${timeLabel}</div>
+        </div>
+        <div class="tc-prog">
+          <div>${done}/${group.tasks.length}</div>
+          <div class="tc-prog-bar"><div class="tc-prog-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+      <div class="tc-body">
+        ${group.tasks.map(t=>`
+          <div class="task-item${doneIds.has(t.id)?' done':''}" id="ti-${t.id}" onclick="toggleTask('${t.id}')">
+            <div class="task-cb">${doneIds.has(t.id)?'✓':''}</div>
+            <div style="flex:1">
+              <div class="task-text">${t.t}</div>
+              ${t.tip?`<div class="task-tip">💡 ${t.tip}</div>`:''}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(btn){
+  const body = btn.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function toggleTask(id){
+  if(doneIds.has(id)) doneIds.delete(id);
+  else doneIds.add(id);
+  saveProgress();
+  renderTasks();
+}
+
+// ══════════════════════════════════
+// ZONES
+// ══════════════════════════════════
+function renderZones(){
+  const grid = document.getElementById('zoneGrid');
+  grid.innerHTML = ZONES.map(z=>{
+    const allTasks = [...z.quick,...z.deep];
+    const done = allTasks.filter(t=>doneIds.has('z_'+z.id+'_'+t)).length;
+    const pct = allTasks.length ? Math.round(done/allTasks.length*100) : 0;
+    return `
+    <div class="zone-card${activeZone===z.id?' active':''}" onclick="openZone('${z.id}')">
+      <div class="zone-head">
+        <div class="zone-ico" style="background:${z.color}">${z.icon}</div>
+        <div>
+          <div class="zone-name">${z.name}</div>
+          <div class="zone-prog-txt">${done} из ${allTasks.length} задач</div>
+        </div>
+      </div>
+      <div class="zone-prog-wrap">
+        <div class="zone-prog-fill" style="width:${pct}%"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted)">${pct}% выполнено</div>
+    </div>`;
+  }).join('');
+}
+
+function openZone(id){
+  activeZone = id;
+  activeZoneSubtab = 'quick';
+  renderZones();
+  renderZoneDetail();
+  document.getElementById('zoneDetail').classList.add('open');
+  document.getElementById('zoneDetail').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderZoneDetail(){
+  const z = ZONES.find(z=>z.id===activeZone);
+  if(!z) return;
+  const detail = document.getElementById('zoneDetail');
+  const tasks = activeZoneSubtab === 'quick' ? z.quick : z.deep;
+  detail.innerHTML = `
+    <div class="zone-detail-head">
+      <div class="zone-detail-title">${z.icon} ${z.name}</div>
+      <button class="close-btn" onclick="closeZone()">✕</button>
+    </div>
+    <div class="zone-subtabs">
+      <button class="zone-subtab${activeZoneSubtab==='quick'?' on':''}" onclick="setZoneSubtab('quick',this)">⚡ Быстрая (15 мин)</button>
+      <button class="zone-subtab${activeZoneSubtab==='deep'?' on':''}" onclick="setZoneSubtab('deep',this)">🧽 Глубокая (1+ час)</button>
+      <button class="zone-subtab${activeZoneSubtab==='tips'?' on':''}" onclick="setZoneSubtab('tips',this)">💡 Советы</button>
+    </div>
+    ${activeZoneSubtab !== 'tips' ? tasks.map(t=>{
+      const tid = 'z_'+z.id+'_'+t;
+      const done = doneIds.has(tid);
+      return `
+      <div class="task-item${done?' done':''}" onclick="toggleZoneTask('${z.id}','${t}')">
+        <div class="task-cb">${done?'✓':''}</div>
+        <div class="task-text">${t}</div>
+      </div>`;
+    }).join('') : z.tips.map(tip=>`
+      <div style="display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--border)">
+        <span>💡</span>
+        <div style="font-size:13px;color:var(--ink);line-height:1.5">${tip}</div>
+      </div>`).join('')}
+  `;
+}
+
+function setZoneSubtab(tab, btn){
+  activeZoneSubtab = tab;
+  renderZoneDetail();
+}
+
+function toggleZoneTask(zoneId, task){
+  const tid = 'z_'+zoneId+'_'+task;
+  if(doneIds.has(tid)) doneIds.delete(tid);
+  else doneIds.add(tid);
+  saveProgress();
+  renderZones();
+  renderZoneDetail();
+}
+
+function closeZone(){
+  activeZone = null;
+  document.getElementById('zoneDetail').classList.remove('open');
+  renderZones();
+}
+
+// ══════════════════════════════════
+// TIMER
+// ══════════════════════════════════
+function renderTimerZonePicker(){
+  const picker = document.getElementById('timerZonePicker');
+  picker.innerHTML = ZONES.map(z=>`
+    <div class="tz-btn${timerZone===z.id?' on':''}" onclick="setTimerZone('${z.id}',this)">
+      ${z.icon} ${z.name}
+    </div>`).join('');
+}
+
+function setTimerZone(id, btn){
+  timerZone = id;
+  document.querySelectorAll('.tz-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const z = ZONES.find(z=>z.id===id);
+  document.getElementById('timerZoneLabel').textContent = z.name;
+  renderTimerTasks();
+}
+
+function renderTimerTasks(){
+  const z = ZONES.find(z=>z.id===timerZone);
+  if(!z) return;
+  const tasks = z.quick;
+  document.getElementById('timerTaskList').innerHTML = `
+    <div class="timer-tasks-title">Что делать за эти 15 минут</div>
+    ${tasks.map((t,i)=>{
+      const tid = 'tmr_'+timerZone+'_'+i;
+      const done = doneIds.has(tid);
+      return `
+      <div class="timer-task-item${done?' done':''}" onclick="toggleTimerTask('${tid}')">
+        <div class="timer-task-cb">${done?'✓':''}</div>
+        <span>${t}</span>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function toggleTimerTask(tid){
+  if(doneIds.has(tid)) doneIds.delete(tid);
+  else doneIds.add(tid);
+  saveProgress();
+  renderTimerTasks();
+}
+
+function toggleTimer(){
+  if(timerRunning){
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timerStartBtn').textContent = '▶ Старт';
+  } else {
+    if(timerSeconds <= 0) resetTimer();
+    timerRunning = true;
+    document.getElementById('timerStartBtn').textContent = '⏸ Пауза';
+    timerInterval = setInterval(()=>{
+      timerSeconds--;
+      updateTimerDisplay();
+      if(timerSeconds <= 0){
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timerStartBtn').textContent = '▶ Старт';
+        document.getElementById('timerDisplay').textContent = '✓';
+        document.getElementById('timerLabel').textContent = 'Готово!';
+      }
+    },1000);
+  }
+}
+
+function resetTimer(){
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = timerMax;
+  document.getElementById('timerStartBtn').textContent = '▶ Старт';
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay(){
+  const m = Math.floor(timerSeconds/60);
+  const s = timerSeconds%60;
+  document.getElementById('timerDisplay').textContent =
+    `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  // Ring
+  const pct = timerSeconds/timerMax;
+  const circ = 597;
+  document.getElementById('ringFill').style.strokeDashoffset = circ*(1-pct);
+}
+
+// ══════════════════════════════════
+// DECLUTTER
+// ══════════════════════════════════
+function renderDeclutter(){
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = DECLUTTER_WEEKS.map(week=>{
+    const done = week.days.filter(d=>doneIds.has('dc_'+d.d)).length;
+    return `
+    <div class="week-card">
+      <div class="week-head" onclick="toggleWeek(this)">
+        <div class="week-num" style="background:var(--rust)">${week.week}</div>
+        <div class="week-info">
+          <div class="week-title">${week.title}</div>
+          <div class="week-sub">${week.sub}</div>
+        </div>
+        <div class="week-status">${done}/${week.days.length}</div>
+      </div>
+      <div class="week-body">
+        ${week.days.map(d=>{
+          const done = doneIds.has('dc_'+d.d);
+          return `
+          <div class="day-row${done?' done':''}" onclick="toggleDay(${d.d})">
+            <div class="day-num">${d.d}</div>
+            <div class="day-task">${d.t}</div>
+            <div class="day-cb">${done?'✓':''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // KonMari
+  document.getElementById('kmCards').innerHTML = KM_CARDS.map(c=>`
+    <div class="km-card">
+      <div class="km-num">${c.n}</div>
+      <div class="km-content">
+        <div class="km-card-title">${c.title}</div>
+        <div class="km-card-text">${c.text}</div>
+        <div class="km-card-tip">💡 ${c.tip}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleWeek(btn){
+  btn.nextElementSibling.classList.toggle('open');
+}
+
+function toggleDay(n){
+  const id = 'dc_'+n;
+  if(doneIds.has(id)) doneIds.delete(id);
+  else doneIds.add(id);
+  saveProgress();
+  renderDeclutter();
+}
+
+// ══════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════
+function getAllTaskIds(){
+  let all = [];
+  Object.values(TASKS).forEach(groups=>groups.forEach(g=>g.tasks.forEach(t=>all.push(t.id))));
+  ZONES.forEach(z=>[...z.quick,...z.deep].forEach(t=>all.push('z_'+z.id+'_'+t)));
+  DECLUTTER_WEEKS.forEach(w=>w.days.forEach(d=>all.push('dc_'+d.d)));
+  return all;
+}
+
+function updateProgressLabel(){
+  const all = getAllTaskIds();
+  const done = all.filter(id=>doneIds.has(id)).length;
+  const pct = Math.round(done/all.length*100);
+  document.getElementById('progLabel').textContent = pct+'%';
+}
+
+function openProgress(){
+  const cats = [
+    {label:'Ежедневная уборка',icon:'☀️',ids:TASKS.daily.flatMap(g=>g.tasks.map(t=>t.id))},
+    {label:'Еженедельная уборка',icon:'📅',ids:TASKS.weekly.flatMap(g=>g.tasks.map(t=>t.id))},
+    {label:'Ежемесячная уборка',icon:'🗓',ids:TASKS.monthly.flatMap(g=>g.tasks.map(t=>t.id))},
+    {label:'Уборка по зонам',icon:'🗂',ids:ZONES.flatMap(z=>[...z.quick,...z.deep].map(t=>'z_'+z.id+'_'+t))},
+    {label:'Расхламление 30 дней',icon:'✨',ids:DECLUTTER_WEEKS.flatMap(w=>w.days.map(d=>'dc_'+d.d))},
+  ];
+  const allIds = cats.flatMap(c=>c.ids);
+  const totalDone = allIds.filter(id=>doneIds.has(id)).length;
+  const pct = Math.round(totalDone/allIds.length*100);
+
+  document.getElementById('progPct').textContent = pct+'%';
+  document.getElementById('progRingFill').style.strokeDashoffset = 364*(1-pct/100);
+
+  document.getElementById('progCats').innerHTML = cats.map(c=>{
+    const done = c.ids.filter(id=>doneIds.has(id)).length;
+    const p = c.ids.length ? Math.round(done/c.ids.length*100) : 0;
+    return `
+    <div class="prog-cat">
+      <div class="prog-cat-icon">${c.icon}</div>
+      <div class="prog-cat-label">${c.label}</div>
+      <div class="prog-cat-bar"><div class="prog-cat-fill" style="width:${p}%"></div></div>
+      <div class="prog-cat-val">${done}/${c.ids.length}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeProgress(e){
+  if(!e || e.target === document.getElementById('modalOverlay'))
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+renderTasks();
+renderZones();
+renderTimerZonePicker();
+renderDeclutter();
+updateProgressLabel();
+// Set initial task count
+let _initTotal = 0;
+Object.values(TASKS).forEach(groups=>groups.forEach(g=>_initTotal+=g.tasks.length));
+document.getElementById('taskCount').textContent = _initTotal;
+</script>
+</body>
+</html>
