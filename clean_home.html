@@ -1,7 +1,1600 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+<meta charset="UTF<!DOCTYPE html>
+<html lang="ru">
+<head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Чистый Дом — Система уборки</title>
+<style>
+:root{
+  --cream:#faf6ef;
+  --white:#ffffff;
+  --rust:#c9622f;
+  --rust-light:#f0ddd3;
+  --sage:#4a7c59;
+  --sage-light:#ddeee3;
+  --sand:#e8c49a;
+  --dark:#2d2520;
+  --ink:#3d3530;
+  --muted:#9b8f87;
+  --border:#e8e0d5;
+  --shadow:0 2px 16px rgba(45,37,32,.09);
+  --shadow-lg:0 8px 32px rgba(45,37,32,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── HEADER ── */
+.header{
+  background:var(--dark);
+  padding:0;
+  position:sticky;
+  top:0;
+  z-index:200;
+  box-shadow:0 2px 20px rgba(0,0,0,.25);
+}
+.header-inner{
+  display:flex;
+  align-items:center;
+  height:56px;
+  gap:0;
+  padding:0;
+}
+/* Logo wrapper */
+.logo-wrap{height:56px;display:flex;align-items:center;padding:0 14px;background:#fff;border-radius:0 14px 14px 0;box-shadow:2px 0 10px rgba(0,0,0,.18);flex-shrink:0;margin-right:4px}
+.nav-tabs{
+  display:flex;
+  gap:2px;
+  padding:0 12px;
+  overflow-x:auto;
+  flex:1;
+  scrollbar-width:none;
+}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{
+  flex-shrink:0;
+  padding:6px 13px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  color:rgba(255,255,255,.55);
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  transition:all .2s;
+  white-space:nowrap;
+}
+.nav-tab:hover{color:rgba(255,255,255,.85)}
+.nav-tab.on{background:var(--rust);color:#fff}
+.progress-btn{
+  flex-shrink:0;
+  margin-right:12px;
+  padding:7px 14px;
+  border-radius:20px;
+  background:var(--sage);
+  color:#fff;
+  font-size:12px;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+
+/* ── PAGES ── */
+.page{display:none;min-height:calc(100vh - 56px);padding-bottom:40px}
+.page.on{display:block}
+
+/* ── HERO ── */
+.hero{
+  background:linear-gradient(135deg,var(--dark) 0%,#4a3a32 100%);
+  padding:48px 24px 56px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-content{max-width:680px;margin:0 auto;position:relative;text-align:center}
+.hero-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(201,98,47,.25);
+  border:1px solid rgba(201,98,47,.4);
+  color:var(--sand);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  padding:5px 14px;
+  border-radius:20px;
+  margin-bottom:20px;
+}
+.hero h1{
+  font-family:Georgia,serif;
+  font-size:clamp(28px,5vw,46px);
+  font-weight:700;
+  color:#fff;
+  line-height:1.15;
+  margin-bottom:12px;
+}
+.hero h1 em{color:var(--sand);font-style:normal}
+.hero p{
+  color:rgba(255,255,255,.65);
+  font-size:15px;
+  line-height:1.6;
+  margin-bottom:32px;
+}
+.apt-picker{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.apt-btn{
+  padding:12px 20px;
+  border-radius:12px;
+  border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.8);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  text-align:center;
+}
+.apt-btn:hover{border-color:var(--sand);background:rgba(232,196,154,.12);color:#fff}
+.apt-btn.on{border-color:var(--rust);background:var(--rust);color:#fff}
+.apt-btn .ab-icon{font-size:24px;display:block;margin-bottom:4px}
+.hero-stats{
+  display:flex;
+  gap:24px;
+  justify-content:center;
+  margin-top:28px;
+  flex-wrap:wrap;
+}
+.hs{
+  text-align:center;
+  color:rgba(255,255,255,.6);
+  font-size:12px;
+}
+.hs b{display:block;font-size:22px;color:#fff;font-family:Georgia,serif}
+
+/* ── SECTION ── */
+.section{max-width:780px;margin:0 auto;padding:32px 20px 0}
+.section-title{
+  font-family:Georgia,serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--dark);
+  margin-bottom:6px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.section-sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+
+/* ── SCHEDULE CARDS ── */
+.freq-tabs{
+  display:flex;
+  gap:6px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+.freq-tab{
+  padding:7px 16px;
+  border-radius:20px;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .18s;
+}
+.freq-tab.on{border-color:var(--rust);background:var(--rust);color:#fff}
+
+.task-card{
+  background:var(--white);
+  border-radius:14px;
+  padding:0;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  margin-bottom:10px;
+}
+.tc-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  cursor:pointer;
+  user-select:none;
+}
+.tc-icon{
+  width:36px;height:36px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  flex-shrink:0;
+}
+.tc-label{font-size:14px;font-weight:700;color:var(--dark);flex:1}
+.tc-time{font-size:11px;color:var(--muted);font-weight:600}
+.tc-prog{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  color:var(--muted);
+}
+.tc-prog-bar{
+  width:48px;height:4px;
+  background:var(--border);
+  border-radius:2px;
+  overflow:hidden;
+}
+.tc-prog-fill{height:100%;background:var(--sage);border-radius:2px;transition:width .3s}
+.tc-body{
+  padding:0 16px 14px;
+  display:none;
+}
+.tc-body.open{display:block}
+.task-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 0;
+  border-top:1px solid var(--border);
+  cursor:pointer;
+}
+.task-cb{
+  width:20px;height:20px;
+  border-radius:6px;
+  border:2px solid var(--border);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+  font-size:11px;
+  color:transparent;
+}
+.task-item.done .task-cb{
+  background:var(--sage);
+  border-color:var(--sage);
+  color:#fff;
+}
+.task-item.done .task-text{
+  text-decoration:line-through;
+  color:var(--muted);
+}
+.task-text{font-size:13px;color:var(--ink);flex:1}
+.task-tip{font-size:11px;color:var(--rust);font-style:italic}
+
+/* ── ZONES ── */
+.zone-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:12px;
+}
+.zone-card{
+  background:var(--white);
+  border-radius:14px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  transition:all .2s;
+  border:2px solid transparent;
+}
+.zone-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.zone-card.active{border-color:var(--rust)}
+.zone-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+}
+.zone-ico{
+  width:40px;height:40px;
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+}
+.zone-name{font-size:15px;font-weight:700;color:var(--dark)}
+.zone-prog-wrap{
+  height:5px;
+  background:var(--border);
+  border-radius:3px;
+  overflow:hidden;
+  margin-bottom:6px;
+}
+.zone-prog-fill{
+  height:100%;
+  border-radius:3px;
+  background:linear-gradient(90deg,var(--rust),var(--sand));
+  transition:width .3s;
+}
+.zone-prog-txt{font-size:11px;color:var(--muted)}
+
+/* Zone detail panel */
+.zone-detail{
+  background:var(--white);
+  border-radius:14px;
+  padding:20px;
+  box-shadow:var(--shadow);
+  margin-top:16px;
+  display:none;
+}
+.zone-detail.open{display:block}
+.zone-detail-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+}
+.zone-detail-title{
+  font-family:Georgia,serif;
+  font-size:18px;
+  font-weight:700;
+  color:var(--dark);
+  display:flex;align-items:center;gap:8px;
+}
+.close-btn{
+  width:28px;height:28px;
+  border-radius:50%;
+  background:var(--border);
+  border:none;
+  cursor:pointer;
+  font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.zone-subtabs{
+  display:flex;
+  gap:6px;
+  margin-bottom:14px;
+}
+.zone-subtab{
+  padding:5px 12px;
+  border-radius:16px;
+  border:1.5px solid var(--border);
+  background:transparent;
+  font-size:11px;font-weight:600;
+  color:var(--muted);cursor:pointer;
+  transition:all .15s;
+}
+.zone-subtab.on{border-color:var(--rust);background:var(--rust-light);color:var(--rust)}
+
+/* ── TIMER ── */
+.timer-wrap{
+  max-width:380px;
+  margin:0 auto;
+  text-align:center;
+  padding:20px 0;
+}
+.timer-zone-select{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-bottom:28px;
+}
+.tz-btn{
+  padding:8px 16px;
+  border-radius:20px;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  font-size:12px;font-weight:600;
+  color:var(--muted);cursor:pointer;
+  transition:all .18s;
+}
+.tz-btn.on{border-color:var(--rust);background:var(--rust);color:#fff}
+
+.timer-ring{
+  position:relative;
+  width:220px;height:220px;
+  margin:0 auto 24px;
+}
+.timer-ring svg{transform:rotate(-90deg)}
+.ring-bg{stroke:var(--border);fill:none}
+.ring-fill{
+  stroke:var(--rust);
+  fill:none;
+  stroke-linecap:round;
+  transition:stroke-dashoffset .5s linear;
+}
+.timer-center{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.timer-time{
+  font-family:Georgia,serif;
+  font-size:44px;
+  font-weight:700;
+  color:var(--dark);
+  line-height:1;
+}
+.timer-label{font-size:12px;color:var(--muted);font-weight:600;margin-top:4px}
+.timer-btns{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.tbtn{
+  padding:12px 28px;
+  border-radius:12px;
+  font-size:14px;font-weight:700;
+  border:none;cursor:pointer;
+  transition:all .18s;
+}
+.tbtn-start{background:var(--rust);color:#fff}
+.tbtn-start:hover{background:#b5552a}
+.tbtn-reset{background:var(--border);color:var(--ink)}
+.tbtn-reset:hover{background:#d9d0c5}
+.timer-tasks{
+  background:var(--white);
+  border-radius:14px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  text-align:left;
+}
+.timer-tasks-title{
+  font-size:12px;
+  font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  margin-bottom:10px;
+}
+.timer-task-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 0;
+  font-size:13px;
+  color:var(--ink);
+  border-top:1px solid var(--border);
+  cursor:pointer;
+}
+.timer-task-item.done .timer-task-cb{background:var(--sage);border-color:var(--sage);color:#fff}
+.timer-task-item.done span{text-decoration:line-through;color:var(--muted)}
+.timer-task-cb{
+  width:18px;height:18px;
+  border-radius:5px;
+  border:2px solid var(--border);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:transparent;
+  transition:all .15s;
+}
+
+/* ── DECLUTTER ── */
+.declutter-hero{
+  background:linear-gradient(135deg,#3a2e28,#5c4438);
+  border-radius:16px;
+  padding:24px;
+  margin-bottom:20px;
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+}
+.declutter-hero::after{
+  content:'🗂';
+  position:absolute;
+  right:20px;bottom:-10px;
+  font-size:80px;
+  opacity:.15;
+}
+.declutter-hero h2{
+  font-family:Georgia,serif;
+  font-size:22px;margin-bottom:8px;
+}
+.declutter-hero p{font-size:13px;opacity:.75;line-height:1.5}
+.week-grid{display:flex;flex-direction:column;gap:10px}
+.week-card{
+  background:var(--white);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.week-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  cursor:pointer;
+}
+.week-num{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:var(--rust);
+  color:#fff;
+  font-family:Georgia,serif;
+  font-size:16px;
+  font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.week-info{flex:1}
+.week-title{font-size:14px;font-weight:700;color:var(--dark)}
+.week-sub{font-size:11px;color:var(--muted)}
+.week-status{
+  font-size:11px;
+  padding:3px 10px;
+  border-radius:20px;
+  background:var(--sage-light);
+  color:var(--sage);
+  font-weight:700;
+}
+.week-body{padding:0 16px 14px;display:none}
+.week-body.open{display:block}
+.day-row{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:8px 0;
+  border-top:1px solid var(--border);
+  cursor:pointer;
+}
+.day-num{
+  width:24px;height:24px;
+  border-radius:6px;
+  background:var(--rust-light);
+  color:var(--rust);
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.day-task{font-size:13px;color:var(--ink);flex:1;line-height:1.4}
+.day-cb{
+  width:20px;height:20px;
+  border-radius:6px;
+  border:2px solid var(--border);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:transparent;
+  transition:all .15s;
+  margin-top:2px;
+}
+.day-row.done .day-cb{background:var(--sage);border-color:var(--sage);color:#fff}
+.day-row.done .day-task{text-decoration:line-through;color:var(--muted)}
+
+/* ── KONMARI GUIDE ── */
+.km-section{margin-top:24px}
+.km-title{
+  font-family:Georgia,serif;
+  font-size:18px;color:var(--dark);
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.km-cards{display:flex;flex-direction:column;gap:10px}
+.km-card{
+  background:var(--white);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+}
+.km-num{
+  width:32px;height:32px;
+  border-radius:50%;
+  background:var(--rust);
+  color:#fff;
+  font-family:Georgia,serif;
+  font-size:14px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.km-content{}
+.km-card-title{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.km-card-text{font-size:12px;color:var(--muted);line-height:1.5}
+.km-card-tip{
+  font-size:11px;
+  color:var(--rust);
+  font-style:italic;
+  margin-top:4px;
+}
+
+/* ── PROGRESS MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:500;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--white);
+  border-radius:20px 20px 0 0;
+  padding:28px 24px 36px;
+  width:100%;
+  max-width:520px;
+  max-height:80vh;
+  overflow-y:auto;
+}
+.modal-handle{
+  width:40px;height:4px;
+  background:var(--border);
+  border-radius:2px;
+  margin:0 auto 20px;
+}
+.modal-title{
+  font-family:Georgia,serif;
+  font-size:20px;
+  color:var(--dark);
+  margin-bottom:20px;
+  text-align:center;
+}
+.prog-ring-wrap{
+  display:flex;
+  justify-content:center;
+  margin-bottom:20px;
+  position:relative;
+}
+.prog-ring-label{
+  position:absolute;
+  inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  font-family:Georgia,serif;
+}
+.prog-ring-pct{font-size:32px;font-weight:700;color:var(--dark)}
+.prog-ring-sub{font-size:11px;color:var(--muted)}
+.prog-cats{display:flex;flex-direction:column;gap:10px}
+.prog-cat{display:flex;align-items:center;gap:12px}
+.prog-cat-icon{font-size:18px;width:28px;text-align:center}
+.prog-cat-label{font-size:13px;font-weight:600;color:var(--ink);flex:1}
+.prog-cat-bar{
+  flex:2;
+  height:6px;
+  background:var(--border);
+  border-radius:3px;
+  overflow:hidden;
+}
+.prog-cat-fill{height:100%;background:linear-gradient(90deg,var(--rust),var(--sand));border-radius:3px;transition:width .5s}
+.prog-cat-val{font-size:11px;color:var(--muted);width:36px;text-align:right}
+.modal-close{
+  width:100%;
+  padding:13px;
+  border-radius:12px;
+  background:var(--dark);
+  color:#fff;
+  font-size:14px;font-weight:700;
+  border:none;cursor:pointer;
+  margin-top:20px;
+}
+
+/* ── UTILS ── */
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;font-weight:700;
+  background:var(--rust-light);
+  color:var(--rust);
+}
+.chip.green{background:var(--sage-light);color:var(--sage)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:500px){
+  .hero{padding:32px 16px 40px}
+  .section{padding:24px 14px 0}
+  .zone-grid{grid-template-columns:1fr 1fr}
+  .apt-btn{padding:10px 14px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+  <div class="logo-wrap"><img src="data:image/png;base64,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IDn4nHBWitWwHZ7Rytkmp6+v3SCG1FUd0+YYG58lJNotFts9G2jtdDTUVM36sUEQY0egVqrqUUv21uaVfXYKOKMcvxNY2SbP7doHT30OBwqK+fD6yqxj2jhyAHRoycDz71uqIsmUnN8UuZzlSpKpJzk8thEReTwEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBcEDC5Q8kBXTtmvkxpeME+zP0pzh03h7LHyJUBWO7XCx3anutqqX01XTPD45Gnke494PIjqFaDtaWJ1fs/gu8TC59sqmueQOUbxuu/tbiqiFv2LUqCR2OkONS0UfNMuPsl2r2PXNDHQVroqK9Bu7LSPPuznHF0eeYPH3TxHiOJxO0DYHpy/zS19ilNjrJDvOaxm9A8/ocN39k48FVFjnxvbJG4se05a4HBBUl6P24a50/DHSzVcV3pWcAyuaXPA7hICHfElQys6lOXFQfuKtTS61CfaWkseH5/syVx7PGu6eTFLUWisYTwLJ3MOPEOaPvK+9p7OutKmRv0+vtNDH9r8a6R/oA3HzW00XaYpDGBWaSnY8DiYq0OB+LAvnc+0vH7Ii3aTf7QjAdUVnAejW8fiE473lwr5fc+drqr9XhXnt9zedm+xXS+kp4rhUb93ucfFs9Q0BjHd7I+IB8Tk+K3PX9fU2nQt8uVFII6mlt080LyAd17YyWnB58QFXTSW1PaHrjaPY7ZFXx0NNJWNdLBRwgNMbfefvF2SRug8CcKZu0LdYrVslvLnyASVUbaWMdXGQgED9nePoqdWlUVaKqPLZm16FdXMI1nmTx9SmNTNLU1EtRUSvlmleXyPe7LnOJyST1K+eERbx2XI7VsuFwtlQKi219VRTD/zKeV0bviCCtxoNr+0iihEUOqal7Ry9tDFM74vaT81oi7Fso6i43Gmt9HGZKmplbFEwc3OcQAPiV4nCEt5Ihq0aU1mcU/NF4Nj93ud92b2a73iUTV1TC50sgYGb/vuAOAABkAcltqxek7RFYdNW2ywHMdDTMgDsY3t1oBPqePqsouZm05NrkcFValOTjyyERF5PAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQHUvFDTXO11NurIhLTVM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" alt="berbena" style="height:30px;width:auto;object-fit:contain;"></div>
+    <div class="nav-tabs">
+      <button class="nav-tab on" onclick="goPage('schedule',this)">📅 Расписание</button>
+      <button class="nav-tab" onclick="goPage('zones',this)">🗂 По зонам</button>
+      <button class="nav-tab" onclick="goPage('timer',this)">⏱ Таймер</button>
+      <button class="nav-tab" onclick="goPage('declutter',this)">✨ Расхламление</button>
+    </div>
+    <button class="progress-btn" onclick="openProgress()">
+      <span>📊</span>
+      <span id="progLabel">0%</span>
+    </button>
+  </div>
+</div>
+
+<!-- РАСПИСАНИЕ -->
+<div class="page on" id="page-schedule">
+  <div class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">✦ система уборки</div>
+      <h1>Чистый дом<br>без <em>стресса</em></h1>
+      <p>Выбери тип квартиры — и получи персональный план уборки с чек-листами по каждой зоне</p>
+      <div class="apt-picker">
+        <div class="apt-btn on" onclick="setApt('studio',this)">
+          <span class="ab-icon">🏠</span>Студия
+        </div>
+        <div class="apt-btn" onclick="setApt('1k',this)">
+          <span class="ab-icon">🛋️</span>1-комнатная
+        </div>
+        <div class="apt-btn" onclick="setApt('2k',this)">
+          <span class="ab-icon">🛏️</span>2-комнатная
+        </div>
+        <div class="apt-btn" onclick="setApt('3k',this)">
+          <span class="ab-icon">🏡</span>3+ комнаты
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="hs"><b>4</b>частоты</div>
+        <div class="hs"><b id="taskCount">28</b>задач</div>
+        <div class="hs"><b>5</b>зон</div>
+        <div class="hs"><b>30</b>дней расхламления</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📅 Расписание уборки</div>
+    <div class="section-sub">Нажми на карточку чтобы открыть список задач — отмечай выполненные</div>
+    <div class="freq-tabs">
+      <div class="freq-tab on" onclick="setFreq('daily',this)">Каждый день</div>
+      <div class="freq-tab" onclick="setFreq('weekly',this)">Каждую неделю</div>
+      <div class="freq-tab" onclick="setFreq('monthly',this)">Раз в месяц</div>
+      <div class="freq-tab" onclick="setFreq('seasonal',this)">Сезонно</div>
+    </div>
+    <div id="taskList"></div>
+  </div>
+</div>
+
+<!-- ЗОНЫ -->
+<div class="page" id="page-zones">
+  <div class="section" style="padding-top:28px">
+    <div class="section-title">🗂 Уборка по зонам</div>
+    <div class="section-sub">Выбери зону — получи полный чек-лист задач с советами</div>
+    <div class="zone-grid" id="zoneGrid"></div>
+    <div class="zone-detail" id="zoneDetail"></div>
+  </div>
+</div>
+
+<!-- ТАЙМЕР -->
+<div class="page" id="page-timer">
+  <div class="section" style="padding-top:28px">
+    <div class="section-title">⏱ Таймер 15 минут</div>
+    <div class="section-sub">Метод «одна зона за раз» — 15 минут полной концентрации</div>
+    <div class="timer-wrap">
+      <div class="timer-zone-select" id="timerZonePicker"></div>
+      <div class="timer-ring">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <circle class="ring-bg" cx="110" cy="110" r="95" stroke-width="10"/>
+          <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="95"
+            stroke-width="10"
+            stroke-dasharray="597"
+            stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-center">
+          <div class="timer-time" id="timerDisplay">15:00</div>
+          <div class="timer-label" id="timerZoneLabel">Выбери зону</div>
+        </div>
+      </div>
+      <div class="timer-btns">
+        <button class="tbtn tbtn-start" id="timerStartBtn" onclick="toggleTimer()">▶ Старт</button>
+        <button class="tbtn tbtn-reset" onclick="resetTimer()">↺ Сброс</button>
+      </div>
+      <div class="timer-tasks" id="timerTaskList">
+        <div class="timer-tasks-title">Что делать за эти 15 минут</div>
+        <div style="font-size:13px;color:var(--muted);text-align:center;padding:12px 0">
+          Выбери зону выше 👆
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- РАСХЛАМЛЕНИЕ -->
+<div class="page" id="page-declutter">
+  <div class="section" style="padding-top:28px">
+    <div class="declutter-hero">
+      <h2>30 дней расхламления</h2>
+      <p>Каждый день — одна простая задача. К концу месяца дом станет легче, а голова — свободнее</p>
+    </div>
+    <div class="week-grid" id="weekGrid"></div>
+
+    <div class="km-section">
+      <div class="km-title">✨ Метод КонМари — пошагово</div>
+      <div class="km-cards" id="kmCards"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeProgress(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Мой прогресс</div>
+    <div class="prog-ring-wrap">
+      <svg width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg)">
+        <circle cx="70" cy="70" r="58" stroke="var(--border)" stroke-width="10" fill="none"/>
+        <circle cx="70" cy="70" r="58" id="progRingFill"
+          stroke="var(--rust)" stroke-width="10" fill="none"
+          stroke-linecap="round"
+          stroke-dasharray="364"
+          stroke-dashoffset="364"/>
+      </svg>
+      <div class="prog-ring-label">
+        <div class="prog-ring-pct" id="progPct">0%</div>
+        <div class="prog-ring-sub">выполнено</div>
+      </div>
+    </div>
+    <div class="prog-cats" id="progCats"></div>
+    <button class="modal-close" onclick="closeProgress()">Закрыть</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════
+// DATA
+// ══════════════════════════════════
+// Задачи: base = для всех, extra_1k/2k/3k = добавляются к базе
+const TASKS_RAW = {
+  daily:[
+    {zone:'kitchen',icon:'🍳',color:'#fde8d8',label:'Кухня — каждый день',
+      time:{studio:'5–7 мин','1k':'5–7 мин','2k':'7–10 мин','3k':'10–12 мин'},
+      base:[
+        {id:'d1',t:'Помыть посуду или загрузить в посудомойку',tip:''},
+        {id:'d2',t:'Протереть плиту и варочную поверхность',tip:'Пока тёплая — убирается в разы легче'},
+        {id:'d3',t:'Убрать продукты со стола в холодильник / шкаф',tip:''},
+        {id:'d4',t:'Вытереть столешницу влажной тряпкой',tip:'Микрофибра без моющего — идеально'},
+        {id:'d4b',t:'Протереть раковину и смеситель',tip:'Сухой тряпкой в конце — не будет подтёков'},
+        {id:'d4c',t:'Вынести мусор если заполнен пакет',tip:'Не жди когда будет «полный» — запах появляется раньше'},
+      ],
+      extra_2k:[
+        {id:'d4d',t:'Протереть обеденный стол в столовой зоне',tip:''},
+      ],
+      extra_3k:[
+        {id:'d4e',t:'Протереть барную стойку или остров',tip:''},
+        {id:'d4f',t:'Убрать детский стол после еды',tip:''},
+      ]
+    },
+    {zone:'general',icon:'🧹',color:'#ddeee3',label:'Общий порядок — каждый день',
+      time:{studio:'5 мин','1k':'7 мин','2k':'10 мин','3k':'15 мин'},
+      base:[
+        {id:'d5',t:'Убрать разбросанные вещи по местам',tip:'Правило «взял — положи на место»'},
+        {id:'d6',t:'Проветрить квартиру 10–15 минут',tip:'Утром или перед сном — свежий воздух важнее влажной уборки'},
+        {id:'d7',t:'Протереть раковину в ванной',tip:'30 секунд утром — и ванная всегда выглядит чистой'},
+        {id:'d8',t:'Убрать обувь и одежду в прихожей',tip:''},
+        {id:'d8b',t:'Заправить кровать',tip:'Комната выглядит чистой на 70% от одного этого'},
+      ],
+      extra_1k:[
+        {id:'d8c',t:'Убрать диван — поправить подушки и пледы',tip:''},
+      ],
+      extra_2k:[
+        {id:'d8d',t:'Убрать игрушки или вещи в гостиной',tip:''},
+        {id:'d8e',t:'Протереть журнальный столик',tip:''},
+      ],
+      extra_3k:[
+        {id:'d8f',t:'Быстро пройтись по всем комнатам — убрать лишнее',tip:'5 минут обхода экономят час уборки'},
+        {id:'d8g',t:'Убрать в детской комнате',tip:''},
+        {id:'d8h',t:'Проверить второй санузел',tip:''},
+      ]
+    },
+  ],
+  weekly:[
+    {zone:'floor',icon:'🧺',color:'#ddeee3',label:'Полы — раз в неделю',
+      time:{studio:'15–20 мин','1k':'20–25 мин','2k':'30–40 мин','3k':'45–60 мин'},
+      base:[
+        {id:'w1',t:'Пропылесосить все комнаты',tip:'Начинай с дальней — двигайся к выходу'},
+        {id:'w2',t:'Вымыть полы во всех комнатах',tip:'Две воды: первая моет, вторая ополаскивает'},
+        {id:'w3',t:'Вымыть пол в ванной и туалете',tip:''},
+        {id:'w3b',t:'Пропылесосить ковёр или дорожку',tip:'Пылесось вдоль и поперёк ворса'},
+        {id:'w3c',t:'Протереть плинтусы в коридоре',tip:'Влажной тряпкой раз в неделю — без накопления пыли'},
+      ],
+      extra_1k:[
+        {id:'w3d',t:'Пропылесосить диван и кресла',tip:'Насадка-щётка — по швам и под подушками'},
+      ],
+      extra_2k:[
+        {id:'w3e',t:'Вымести или пропылесосить балкон',tip:''},
+        {id:'w3f',t:'Протереть лестничный порог',tip:''},
+      ],
+      extra_3k:[
+        {id:'w3g',t:'Пропылесосить второй балкон или лоджию',tip:''},
+        {id:'w3h',t:'Вымыть пол в кладовке или постирочной',tip:''},
+        {id:'w3i',t:'Протереть ступени если есть лестница',tip:''},
+      ]
+    },
+    {zone:'bathroom',icon:'🚿',color:'#dde8f5',label:'Ванная и санузел',
+      time:{studio:'15–20 мин','1k':'15–20 мин','2k':'25–30 мин','3k':'35–45 мин'},
+      base:[
+        {id:'w5',t:'Почистить унитаз внутри щёткой',tip:'Средство залей и оставь на 5 мин — потом легко'},
+        {id:'w5b',t:'Протереть унитаз снаружи и сиденье',tip:'Не забудь петли и место крепления'},
+        {id:'w6',t:'Отмыть раковину с чистящим средством',tip:''},
+        {id:'w7',t:'Почистить душевую кабину или ванну',tip:'Гель + пауза 5 мин = минимум усилий'},
+        {id:'w7b',t:'Протереть кафель вокруг ванны и душа',tip:''},
+        {id:'w8',t:'Протереть зеркало',tip:'Газета + чуть уксуса — ноль разводов'},
+        {id:'w8b',t:'Протереть смеситель до блеска',tip:'Лимонная кислота растворяет известковый налёт'},
+        {id:'w9',t:'Сменить полотенца',tip:''},
+        {id:'w9b',t:'Помыть пол в ванной',tip:'Не забудь за унитазом и под тумбой'},
+      ],
+      extra_2k:[
+        {id:'w9c',t:'Убрать второй санузел (если раздельный)',tip:''},
+        {id:'w9d',t:'Протереть полки с косметикой',tip:''},
+      ],
+      extra_3k:[
+        {id:'w9e',t:'Убрать второй полноценный санузел',tip:''},
+        {id:'w9f',t:'Протереть зеркало в гостевом туалете',tip:''},
+        {id:'w9g',t:'Заменить освежитель воздуха',tip:''},
+      ]
+    },
+    {zone:'bedroom',icon:'🛏️',color:'#f0ddd3',label:'Спальня',
+      time:{studio:'10 мин','1k':'15 мин','2k':'20 мин','3k':'30 мин'},
+      base:[
+        {id:'w10',t:'Сменить постельное бельё',tip:'Идеальный ритм — раз в неделю'},
+        {id:'w11',t:'Протереть пыль на тумбочках и комоде',tip:''},
+        {id:'w11b',t:'Протереть пыль на шкафу (сверху)',tip:'Частая ошибка — про верх шкафа забывают'},
+        {id:'w12',t:'Убрать под кроватью — пропылесосить',tip:''},
+        {id:'w13',t:'Разобрать «стул с одеждой»',tip:'У каждого есть такой стул 😄'},
+        {id:'w13b',t:'Проветрить подушку и одеяло',tip:'Вывеси на 20 мин — или пройдись пароочистителем'},
+      ],
+      extra_2k:[
+        {id:'w13c',t:'Убрать в детской или гостевой спальне',tip:''},
+        {id:'w13d',t:'Протереть пыль на письменном столе',tip:''},
+      ],
+      extra_3k:[
+        {id:'w13e',t:'Убрать во второй спальне',tip:''},
+        {id:'w13f',t:'Убрать в кабинете или гардеробной',tip:''},
+        {id:'w13g',t:'Разложить вещи в гардеробной по местам',tip:''},
+      ]
+    },
+    {zone:'dust',icon:'✨',color:'#fdf5e0',label:'Пыль и поверхности',
+      time:{studio:'10 мин','1k':'12 мин','2k':'18 мин','3k':'25 мин'},
+      base:[
+        {id:'w14',t:'Протереть телевизор и технику',tip:'Только сухой микрофиброй — без влаги'},
+        {id:'w15',t:'Протереть подоконники',tip:''},
+        {id:'w16',t:'Вытереть пыль с полок',tip:'Двигай предметы — не обтирай вокруг них'},
+        {id:'w16b',t:'Протереть выключатели и розетки',tip:'Рассадник бактерий — чаще чем думаешь'},
+        {id:'w16c',t:'Протереть дверные ручки',tip:'Дезинфицирующий спрей раз в неделю'},
+        {id:'w16d',t:'Пройтись по дверным полотнам — следы и пятна',tip:''},
+      ],
+      extra_1k:[
+        {id:'w16e',t:'Протереть пыль с карнизов и гардин',tip:''},
+      ],
+      extra_2k:[
+        {id:'w16f',t:'Протереть рамы картин и зеркал',tip:''},
+        {id:'w16g',t:'Протереть пыль с декора и статуэток',tip:'Кисточка для рисования — идеальный инструмент'},
+      ],
+      extra_3k:[
+        {id:'w16h',t:'Пройтись по всем комнатам с электростатической салфеткой',tip:''},
+        {id:'w16i',t:'Протереть пыль с книжных полок',tip:''},
+      ]
+    },
+    {zone:'kitchen_w',icon:'🍽️',color:'#fde8d8',label:'Кухня — раз в неделю',
+      time:{studio:'10 мин','1k':'10 мин','2k':'15 мин','3k':'15 мин'},
+      base:[
+        {id:'w17',t:'Вымыть микроволновку изнутри',tip:'Кружка воды с лимоном — 3 мин в микро, потом легко протереть'},
+        {id:'w17b',t:'Протереть холодильник снаружи',tip:''},
+        {id:'w17c',t:'Протереть фасады нижних шкафов',tip:''},
+        {id:'w17d',t:'Вымыть заглушки и поддон плиты',tip:''},
+        {id:'w17e',t:'Протереть мойку чистящим средством',tip:'Паста из соды + лимонный сок убирает пятна'},
+        {id:'w17f',t:'Проверить и выбросить испортившиеся продукты',tip:''},
+      ],
+      extra_2k:[],
+      extra_3k:[
+        {id:'w17g',t:'Протереть барную стойку или кухонный остров',tip:''},
+      ]
+    },
+  ],
+  monthly:[
+    {zone:'deep_kitchen',icon:'🧽',color:'#fde8d8',label:'Глубокая уборка кухни',
+      time:{studio:'40 мин','1k':'45 мин','2k':'60 мин','3k':'70 мин'},
+      base:[
+        {id:'m1',t:'Вымыть окна на кухне изнутри',tip:''},
+        {id:'m2',t:'Полностью разобрать и вымыть холодильник',tip:'Вынь все полки и ящики — мой отдельно'},
+        {id:'m3',t:'Почистить духовку изнутри',tip:'Пищевая сода + уксус на ночь = минимум усилий'},
+        {id:'m3b',t:'Почистить вытяжку и фильтр',tip:'Фильтр замочи в горячей воде с содой на 20 мин'},
+        {id:'m3c',t:'Протереть верх холодильника',tip:'Там всегда слой жирной пыли'},
+        {id:'m3d',t:'Протереть фасады всех шкафов изнутри и снаружи',tip:''},
+        {id:'m3e',t:'Вымыть мусорное ведро с дезинфекцией',tip:''},
+        {id:'m3f',t:'Разобрать и помыть ящик с приборами',tip:''},
+      ],
+      extra_2k:[
+        {id:'m3g',t:'Вымыть обеденный стол полностью с обезжиривателем',tip:''},
+      ],
+      extra_3k:[
+        {id:'m3h',t:'Протереть кухонный остров со всех сторон',tip:''},
+        {id:'m3i',t:'Вымыть панорамные окна на кухне',tip:''},
+      ]
+    },
+    {zone:'deep_rooms',icon:'🛋️',color:'#ddeee3',label:'Глубокая уборка комнат',
+      time:{studio:'30 мин','1k':'40 мин','2k':'60 мин','3k':'90 мин'},
+      base:[
+        {id:'m4',t:'Убрать за и под крупной мебелью',tip:'Хотя бы раз в месяц — пыль накапливается быстро'},
+        {id:'m4b',t:'Протереть плинтусы во всех комнатах',tip:'Влажная тряпка + зубная щётка для углов'},
+        {id:'m4c',t:'Протереть батареи',tip:'Кисть или фен — выдуй пыль между секциями'},
+        {id:'m4d',t:'Вымыть все зеркала и стеклянные поверхности',tip:''},
+        {id:'m4e',t:'Протереть лопасти вентилятора или люстру',tip:'Наволочка на лопасть — пыль не сыплется вниз'},
+        {id:'m4f',t:'Постирать чехлы на подушках дивана',tip:''},
+        {id:'m4g',t:'Протереть раму и стёкла входной двери',tip:''},
+      ],
+      extra_1k:[
+        {id:'m4h',t:'Вымыть окно в комнате изнутри',tip:''},
+      ],
+      extra_2k:[
+        {id:'m4i',t:'Вымыть окна в обеих комнатах',tip:''},
+        {id:'m4j',t:'Почистить балконную дверь и раму',tip:''},
+      ],
+      extra_3k:[
+        {id:'m4k',t:'Вымыть окна во всех комнатах',tip:''},
+        {id:'m4l',t:'Протереть пыль в кладовке/гардеробной',tip:''},
+        {id:'m4m',t:'Убрать детскую глубоко — под кроватью, полки',tip:''},
+        {id:'m4n',t:'Протереть раздвижные двери или перегородки',tip:''},
+      ]
+    },
+    {zone:'order',icon:'📦',color:'#fdf5e0',label:'Порядок и организация',
+      time:{studio:'20 мин','1k':'25 мин','2k':'35 мин','3k':'45 мин'},
+      base:[
+        {id:'m7',t:'Разобрать один ящик или полку',tip:'По одному в месяц — дом меняется незаметно'},
+        {id:'m8',t:'Проверить запасы бытовой химии и докупить',tip:''},
+        {id:'m9',t:'Выбросить просроченное из аптечки',tip:''},
+        {id:'m10',t:'Разобрать «ящик всего» на кухне',tip:'У всех есть такой ящик 😄'},
+        {id:'m10b',t:'Проверить и выбросить старые пакеты и коробки',tip:''},
+        {id:'m10c',t:'Разобрать прикроватные тумбочки',tip:''},
+        {id:'m10d',t:'Почистить стиральную машину (барабан + манжета)',tip:'Режим самоочистки + лимонная кислота'},
+        {id:'m10e',t:'Протереть посудомойку внутри (если есть)',tip:'Стакан уксуса на дно + пустой цикл'},
+      ],
+      extra_2k:[
+        {id:'m10f',t:'Разобрать детские вещи — убрать то что мало',tip:''},
+      ],
+      extra_3k:[
+        {id:'m10g',t:'Разобрать гардеробную — убрать лишнее',tip:''},
+        {id:'m10h',t:'Проверить кладовку — выбросить ненужное',tip:''},
+        {id:'m10i',t:'Разобрать подсобку или постирочную',tip:''},
+      ]
+    },
+  ],
+  seasonal:[
+    {zone:'seasonal_main',icon:'🌿',color:'#ddeee3',label:'Генеральная — весь дом',
+      time:{studio:'3–4 часа','1k':'4–5 часов','2k':'6–8 часов','3k':'Целый день'},
+      base:[
+        {id:'s1',t:'Вымыть все окна снаружи',tip:'Или вызови клинера — стоит того'},
+        {id:'s2',t:'Разобрать гардероб — сменить сезонную одежду',tip:'Убери то что не носила 2 года'},
+        {id:'s3',t:'Полностью разобрать холодильник и морозилку',tip:'Разморозь морозилку если есть иней'},
+        {id:'s4',t:'Химчистка или стирка подушек и одеял',tip:'Раз в сезон — это гигиена, а не прихоть'},
+        {id:'s4b',t:'Постирать шторы или сдать в химчистку',tip:''},
+        {id:'s5',t:'Разобрать антресоли и кладовку полностью',tip:'Всё вынуть, помыть полки, вернуть нужное'},
+        {id:'s6',t:'Прочистить вентиляционные решётки',tip:'Снять, замочить в мыльной воде на час'},
+        {id:'s7',t:'Почистить стиральную машину полностью',tip:'Лимонная кислота на горячий цикл 90°'},
+        {id:'s8',t:'Помыть жалюзи или протереть рулонные шторы',tip:''},
+        {id:'s8b',t:'Почистить ковры (химчистка или аренда машины)',tip:''},
+        {id:'s8c',t:'Протереть все розетки, выключатели, рамки',tip:''},
+        {id:'s8d',t:'Вымыть люстры и плафоны',tip:''},
+        {id:'s8e',t:'Обработать швы в ванной от плесени',tip:'Отбеливатель в швы, смыть через 30 мин'},
+        {id:'s8f',t:'Проверить и смазать петли всех дверей',tip:'Масло WD-40 — тишина в доме'},
+      ],
+      extra_2k:[
+        {id:'s8g',t:'Помыть балкон полностью — пол, стены, окна',tip:''},
+        {id:'s8h',t:'Разобрать второй шкаф или комод',tip:''},
+      ],
+      extra_3k:[
+        {id:'s8i',t:'Помыть оба балкона / лоджию',tip:''},
+        {id:'s8j',t:'Генеральная уборка в кладовке',tip:''},
+        {id:'s8k',t:'Разобрать гараж или кладовую в подъезде',tip:''},
+        {id:'s8l',t:'Вымыть все окна в детских комнатах',tip:''},
+        {id:'s8m',t:'Почистить второй холодильник если есть',tip:''},
+      ]
+    },
+  ]
+};
+
+// Формируем финальный объект задач с учётом типа квартиры
+function buildTasks(apt){
+  const result = {};
+  const extras = {studio:[],  '1k':['extra_1k'], '2k':['extra_1k','extra_2k'], '3k':['extra_1k','extra_2k','extra_3k']};
+  const keys = extras[apt]||[];
+  for(const freq in TASKS_RAW){
+    result[freq] = TASKS_RAW[freq].map(group=>{
+      let tasks = [...group.base];
+      keys.forEach(key=>{ if(group[key]) tasks = [...tasks,...group[key]]; });
+      return {...group, tasks, time: group.time[apt]||group.time['1k']};
+    });
+  }
+  return result;
+}
+
+let TASKS = buildTasks('studio');
+
+const ZONES = [
+  {id:'kitchen',name:'Кухня',icon:'🍳',color:'#fde8d8',
+    quick:['Помыть посуду','Протереть плиту','Вытереть столешницу','Протереть раковину и смеситель','Убрать продукты со стола','Протереть фасады нижних шкафов','Вынести мусор','Протереть варочную панель'],
+    deep:['Полностью вымыть плиту и решётки','Почистить духовку изнутри','Полностью разобрать холодильник','Вымыть все фасады шкафов','Очистить вытяжку и фильтр','Вымыть пол на кухне','Протереть верх холодильника','Разобрать ящики с посудой и приборами','Вымыть микроволновку изнутри','Протереть верхние шкафы снаружи'],
+    tips:['Держи на плите только то чем пользуешься каждый день — свободная плита моется за 30 секунд','Раковина без посуды = кухня выглядит чистой на 80%','Застели полку под мойкой силиконовым ковриком — легко вынуть и помыть','Спрей для обезжиривания всегда должен быть под рукой','Лимонная кислота в чайнике раз в месяц — никакого налёта','Кухонные полотенца меняй каждые 2 дня — они рассадник бактерий']
+  },
+  {id:'bathroom',name:'Ванная',icon:'🚿',color:'#dde8f5',
+    quick:['Протереть раковину','Протереть зеркало','Собрать мусор','Сменить полотенца','Протереть смеситель','Протереть край ванны или душевой','Убрать флаконы и вернуть на место'],
+    deep:['Отчистить унитаз изнутри и снаружи','Вымыть раковину с чистящим средством','Вымыть ванну или душевую полностью','Протереть весь кафель','Отмыть стеклянную дверь душа от налёта','Вымыть пол','Разобрать полки с косметикой','Протереть шкафчик внутри','Почистить слив от волос','Обработать швы от плесени'],
+    tips:['Силиконовый скребок после каждого душа — никакого известкового налёта никогда','Зеркало — газета + немного уксуса — ноль разводов','Спрей + салфетка рядом с раковиной — уборка займёт 30 секунд','Таблетка для унитаза в бачок — сам чистится при каждом сливе','Лимонная кислота на металлические смесители — блестят как новые']
+  },
+  {id:'bedroom',name:'Спальня',icon:'🛏️',color:'#f0ddd3',
+    quick:['Заправить кровать','Убрать одежду в шкаф','Проветрить 10 мин','Протереть тумбочки','Убрать стаканы и мусор','Поправить подушки и плед','Убрать телефон с зарядкой на место'],
+    deep:['Сменить постельное бельё','Протереть всю пыль со всех поверхностей','Убрать под кроватью с пылесосом','Разобрать шкаф с одеждой','Протереть верх шкафа','Разобрать тумбочки','Постирать наволочки отдельно','Проветрить подушку и одеяло','Протереть зеркало','Разобрать «стул с одеждой»'],
+    tips:['Заправленная кровать = комната выглядит чистой — это важнее чем пыль на полке','Корзина для одежды у кровати — лучшая инвестиция до 500₽','Под кроватью — только плоские ящики с чётко определёнными вещами','Одно зеркало без разводов создаёт ощущение чистоты во всей комнате','Меняй бельё раз в неделю — клещи не успеют размножиться']
+  },
+  {id:'living',name:'Гостиная',icon:'🛋️',color:'#ddeee3',
+    quick:['Убрать вещи на свои места','Протереть экран ТВ','Поправить подушки и пледы на диване','Убрать стаканы и тарелки','Протереть журнальный столик','Сложить книги и пульты','Протереть подоконник'],
+    deep:['Пропылесосить диван и кресла по швам','Протереть всю мебель от пыли','Протереть ТВ и технику сухой микрофиброй','Протереть подоконники','Вымыть пол с перемещением мебели','Протереть стёкла и рамы','Разобрать полки и стеллажи','Постирать чехлы и пледы','Протереть люстру и светильники','Убрать за диваном'],
+    tips:['Корзина для пультов и мелочи на столике — порядок поддерживается сам','Пылесось диван раз в 2 недели — пылевые клещи реальны и невидимы','Свечи и живые растения создают ощущение уюта и чистоты','Правило: всё что лежит не на своём месте больше 2 дней — найди ему место','Протирай ТВ только сухой тряпкой — никакой влаги']
+  },
+  {id:'hall',name:'Прихожая',icon:'🚪',color:'#fdf5e0',
+    quick:['Убрать обувь в шкаф','Повесить верхнюю одежду','Протереть зеркало','Подмести или пропылесосить пол','Убрать сумки и рюкзаки на крючки','Протереть полочку'],
+    deep:['Полностью разобрать шкаф с одеждой','Почистить обувь','Вымыть пол и плинтусы','Разобрать полку с сумками','Протереть зеркало от разводов','Разобрать ключи и мелочи','Выбросить пакеты которые «пригодятся»','Протереть входную дверь изнутри','Убрать сезонную обувь в коробки','Протереть коврик или постирать'],
+    tips:['Полка для обуви у двери = никогда не будет бардака','Крючок для сумки — сумки не на полу никогда','Выброси обувь которую не носила 2 сезона — освободи место для себя','Зонты сушатся в специальной подставке — не на полу','Мини-зеркало у двери — выходишь собранной']
+  },
+];
+
+const DECLUTTER_WEEKS = [
+  {week:1,title:'Неделя 1 — Кухня',sub:'Самое простое место для старта',color:'#fde8d8',days:[
+    {d:1,t:'Выбрось просроченные продукты из шкафов и холодильника'},
+    {d:2,t:'Избавься от посуды которую не используешь (треснутые тарелки, лишние кружки)'},
+    {d:3,t:'Разбери ящик с «всяким разным» — оставь только нужное'},
+    {d:4,t:'Выбрось пакеты с пакетами — оставь 10 штук'},
+    {d:5,t:'Разбери полку со специями — выброси просроченное и дубли'},
+    {d:6,t:'Избавься от посуды для хранения без крышек (или крышек без посуды)'},
+    {d:7,t:'Разбери бытовую химию — выброси то что не использовала год'},
+  ]},
+  {week:2,title:'Неделя 2 — Одежда',sub:'Самая сложная — зато потом легко',color:'#dde8f5',days:[
+    {d:8,t:'Вынь всё из шкафа и разложи на кровати'},
+    {d:9,t:'Отложи то что не носила больше 2 лет'},
+    {d:10,t:'Разбери нижнее бельё — выброси потёртое и то что не по размеру'},
+    {d:11,t:'Разбери носки и колготки — выброси дырявые и одиночные'},
+    {d:12,t:'Перебери сумки — оставь 3–5 которыми реально пользуешься'},
+    {d:13,t:'Разбери шарфы, шапки, перчатки — одна шкатулка максимум'},
+    {d:14,t:'Пакет с отложенной одеждой — сразу отдать или продать'},
+  ]},
+  {week:3,title:'Неделя 3 — Ванная и косметика',sub:'Здесь обычно самое большое захламление',color:'#ddeee3',days:[
+    {d:15,t:'Выброси просроченную косметику и уходовые средства'},
+    {d:16,t:'Разбери аптечку — выброси просроченное и то что уже не нужно'},
+    {d:17,t:'Избавься от пустых или почти пустых флаконов'},
+    {d:18,t:'Перебери полотенца — выброси те что уже «не гостевые»'},
+    {d:19,t:'Разбери ящик под раковиной'},
+    {d:20,t:'Избавься от косметики которую не используешь (пусть даже дорогой)'},
+    {d:21,t:'Разбери маникюрные принадлежности — выброси старые лаки'},
+  ]},
+  {week:4,title:'Неделя 4 — Всё остальное',sub:'Финишная прямая!',color:'#fdf5e0',days:[
+    {d:22,t:'Разбери книги — оставь только любимые (книги можно сдать в библиотеку)'},
+    {d:23,t:'Разбери документы — уничтожь ненужные бумаги'},
+    {d:24,t:'Перебери провода и зарядки — выброси от устройств которых нет'},
+    {d:25,t:'Разбери «полку памяти» — магниты, сувениры, безделушки'},
+    {d:26,t:'Выброси старые журналы и газеты'},
+    {d:27,t:'Разбери «зону хаоса» — коридор, антресоли, кладовка'},
+    {d:28,t:'Перебери детские игрушки или старые вещи — отдай нуждающимся'},
+  ]},
+  {week:5,title:'Финал — Поддержание',sub:'Правила которые сохранят результат навсегда',color:'#f0ddd3',days:[
+    {d:29,t:'Установи правило «одно входит — одно выходит»'},
+    {d:30,t:'Сфотографируй результат и гордись собой 🎉'},
+  ]},
+];
+
+const KM_CARDS = [
+  {n:'01',title:'Делай всё сразу по категориям, не по комнатам',text:'Собери ВСЮ одежду из всей квартиры — потом ВСЮ посуду. Так виден реальный объём.',tip:'Не заканчивай категорию на середине — иначе эффект теряется'},
+  {n:'02',title:'Задавай только один вопрос: «Это приносит мне радость?»',text:'Держи вещь в руках. Если внутри нет отклика — благодари и отдавай.',tip:'Для утилитарных вещей спроси: «Я этим реально пользуюсь?»'},
+  {n:'03',title:'Правильный порядок категорий',text:'1. Одежда → 2. Книги → 3. Документы → 4. Разное → 5. Памятные вещи. Начинай с простого — с «сентиментальным» заканчивай.',tip:'Фото и письма — в самом конце, когда уже натренирован «отпускать»'},
+  {n:'04',title:'У каждой вещи — своё место',text:'Когда всё убрано — определи конкретное место для каждого предмета. Не «примерно здесь», а точно.',tip:'Вертикальное хранение одежды — видишь всё сразу и ничего не теряется'},
+  {n:'05',title:'Хранить нужно то, что оставила — не то, от чего избавилась',text:'Сначала реши что остаётся. Потом думай как хранить. Не наоборот.',tip:'Коробки и органайзеры покупай в последнюю очередь'},
+];
+
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let aptType = 'studio';
+let freqType = 'daily';
+let doneIds = new Set(JSON.parse(localStorage.getItem('ch_done')||'[]'));
+let activeZone = null;
+let activeZoneSubtab = 'quick';
+let timerZone = null;
+let timerSeconds = 15*60;
+let timerMax = 15*60;
+let timerRunning = false;
+let timerInterval = null;
+
+function saveProgress(){
+  localStorage.setItem('ch_done', JSON.stringify([...doneIds]));
+  updateProgressLabel();
+}
+
+// ══════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════
+function goPage(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+
+// ══════════════════════════════════
+// APARTMENT TYPE
+// ══════════════════════════════════
+function setApt(type, btn){
+  aptType = type;
+  document.querySelectorAll('.apt-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  TASKS = buildTasks(type);
+  // Count all tasks across all frequencies
+  let total = 0;
+  Object.values(TASKS).forEach(groups=>groups.forEach(g=>total+=g.tasks.length));
+  document.getElementById('taskCount').textContent = total;
+  renderTasks();
+}
+
+// ══════════════════════════════════
+// SCHEDULE / TASKS
+// ══════════════════════════════════
+function setFreq(f, btn){
+  freqType = f;
+  document.querySelectorAll('.freq-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderTasks();
+}
+
+function renderTasks(){
+  const list = document.getElementById('taskList');
+  const data = TASKS[freqType];
+  list.innerHTML = data.map(group => {
+    const done = group.tasks.filter(t=>doneIds.has(t.id)).length;
+    const pct = group.tasks.length ? Math.round(done/group.tasks.length*100) : 0;
+    const timeLabel = typeof group.time === 'string' ? group.time : (group.time[aptType]||'');
+    return `
+    <div class="task-card">
+      <div class="tc-head" onclick="toggleCard(this)">
+        <div class="tc-icon" style="background:${group.color}">${group.icon}</div>
+        <div style="flex:1">
+          <div class="tc-label">${group.label}</div>
+          <div class="tc-time">⏱ ${timeLabel}</div>
+        </div>
+        <div class="tc-prog">
+          <div>${done}/${group.tasks.length}</div>
+          <div class="tc-prog-bar"><div class="tc-prog-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+      <div class="tc-body">
+        ${group.tasks.map(t=>`
+          <div class="task-item${doneIds.has(t.id)?' done':''}" id="ti-${t.id}" onclick="toggleTask('${t.id}')">
+            <div class="task-cb">${doneIds.has(t.id)?'✓':''}</div>
+            <div style="flex:1">
+              <div class="task-text">${t.t}</div>
+              ${t.tip?`<div class="task-tip">💡 ${t.tip}</div>`:''}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(btn){
+  const body = btn.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function toggleTask(id){
+  if(doneIds.has(id)) doneIds.delete(id);
+  else doneIds.add(id);
+  saveProgress();
+  renderTasks();
+}
+
+// ══════════════════════════════════
+// ZONES
+// ══════════════════════════════════
+function renderZones(){
+  const grid = document.getElementById('zoneGrid');
+  grid.innerHTML = ZONES.map(z=>{
+    const allTasks = [...z.quick,...z.deep];
+    const done = allTasks.filter(t=>doneIds.has('z_'+z.id+'_'+t)).length;
+    const pct = allTasks.length ? Math.round(done/allTasks.length*100) : 0;
+    return `
+    <div class="zone-card${activeZone===z.id?' active':''}" onclick="openZone('${z.id}')">
+      <div class="zone-head">
+        <div class="zone-ico" style="background:${z.color}">${z.icon}</div>
+        <div>
+          <div class="zone-name">${z.name}</div>
+          <div class="zone-prog-txt">${done} из ${allTasks.length} задач</div>
+        </div>
+      </div>
+      <div class="zone-prog-wrap">
+        <div class="zone-prog-fill" style="width:${pct}%"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted)">${pct}% выполнено</div>
+    </div>`;
+  }).join('');
+}
+
+function openZone(id){
+  activeZone = id;
+  activeZoneSubtab = 'quick';
+  renderZones();
+  renderZoneDetail();
+  document.getElementById('zoneDetail').classList.add('open');
+  document.getElementById('zoneDetail').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderZoneDetail(){
+  const z = ZONES.find(z=>z.id===activeZone);
+  if(!z) return;
+  const detail = document.getElementById('zoneDetail');
+  const tasks = activeZoneSubtab === 'quick' ? z.quick : z.deep;
+  detail.innerHTML = `
+    <div class="zone-detail-head">
+      <div class="zone-detail-title">${z.icon} ${z.name}</div>
+      <button class="close-btn" onclick="closeZone()">✕</button>
+    </div>
+    <div class="zone-subtabs">
+      <button class="zone-subtab${activeZoneSubtab==='quick'?' on':''}" onclick="setZoneSubtab('quick',this)">⚡ Быстрая (15 мин)</button>
+      <button class="zone-subtab${activeZoneSubtab==='deep'?' on':''}" onclick="setZoneSubtab('deep',this)">🧽 Глубокая (1+ час)</button>
+      <button class="zone-subtab${activeZoneSubtab==='tips'?' on':''}" onclick="setZoneSubtab('tips',this)">💡 Советы</button>
+    </div>
+    ${activeZoneSubtab !== 'tips' ? tasks.map(t=>{
+      const tid = 'z_'+z.id+'_'+t;
+      const done = doneIds.has(tid);
+      return `
+      <div class="task-item${done?' done':''}" onclick="toggleZoneTask('${z.id}','${t}')">
+        <div class="task-cb">${done?'✓':''}</div>
+        <div class="task-text">${t}</div>
+      </div>`;
+    }).join('') : z.tips.map(tip=>`
+      <div style="display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--border)">
+        <span>💡</span>
+        <div style="font-size:13px;color:var(--ink);line-height:1.5">${tip}</div>
+      </div>`).join('')}
+  `;
+}
+
+function setZoneSubtab(tab, btn){
+  activeZoneSubtab = tab;
+  renderZoneDetail();
+}
+
+function toggleZoneTask(zoneId, task){
+  const tid = 'z_'+zoneId+'_'+task;
+  if(doneIds.has(tid)) doneIds.delete(tid);
+  else doneIds.add(tid);
+  saveProgress();
+  renderZones();
+  renderZoneDetail();
+}
+
+function closeZone(){
+  activeZone = null;
+  document.getElementById('zoneDetail').classList.remove('open');
+  renderZones();
+}
+
+// ══════════════════════════════════
+// TIMER
+// ══════════════════════════════════
+function renderTimerZonePicker(){
+  const picker = document.getElementById('timerZonePicker');
+  picker.innerHTML = ZONES.map(z=>`
+    <div class="tz-btn${timerZone===z.id?' on':''}" onclick="setTimerZone('${z.id}',this)">
+      ${z.icon} ${z.name}
+    </div>`).join('');
+}
+
+function setTimerZone(id, btn){
+  timerZone = id;
+  document.querySelectorAll('.tz-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const z = ZONES.find(z=>z.id===id);
+  document.getElementById('timerZoneLabel').textContent = z.name;
+  renderTimerTasks();
+}
+
+function renderTimerTasks(){
+  const z = ZONES.find(z=>z.id===timerZone);
+  if(!z) return;
+  const tasks = z.quick;
+  document.getElementById('timerTaskList').innerHTML = `
+    <div class="timer-tasks-title">Что делать за эти 15 минут</div>
+    ${tasks.map((t,i)=>{
+      const tid = 'tmr_'+timerZone+'_'+i;
+      const done = doneIds.has(tid);
+      return `
+      <div class="timer-task-item${done?' done':''}" onclick="toggleTimerTask('${tid}')">
+        <div class="timer-task-cb">${done?'✓':''}</div>
+        <span>${t}</span>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function toggleTimerTask(tid){
+  if(doneIds.has(tid)) doneIds.delete(tid);
+  else doneIds.add(tid);
+  saveProgress();
+  renderTimerTasks();
+}
+
+function toggleTimer(){
+  if(timerRunning){
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timerStartBtn').textContent = '▶ Старт';
+  } else {
+    if(timerSeconds <= 0) resetTimer();
+    timerRunning = true;
+    document.getElementById('timerStartBtn').textContent = '⏸ Пауза';
+    timerInterval = setInterval(()=>{
+      timerSeconds--;
+      updateTimerDisplay();
+      if(timerSeconds <= 0){
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timerStartBtn').textContent = '▶ Старт';
+        document.getElementById('timerDisplay').textContent = '✓';
+        document.getElementById('timerLabel').textContent = 'Готово!';
+      }
+    },1000);
+  }
+}
+
+function resetTimer(){
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = timerMax;
+  document.getElementById('timerStartBtn').textContent = '▶ Старт';
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay(){
+  const m = Math.floor(timerSeconds/60);
+  const s = timerSeconds%60;
+  document.getElementById('timerDisplay').textContent =
+    `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  // Ring
+  const pct = timerSeconds/timerMax;
+  const circ = 597;
+  document.getElementById('ringFill').style.strokeDashoffset = circ*(1-pct);
+}
+
+// ══════════════════════════════════
+// DECLUTTER
+// ══════════════════════════════════
+function renderDeclutter(){
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = DECLUTTER_WEEKS.map(week=>{
+    const done = week.days.filter(d=>doneIds.has('dc_'+d.d)).length;
+    return `
+    <div class="week-card">
+      <div class="week-head" onclick="toggleWeek(this)">
+        <div class="week-num" style="background:var(--rust)">${week.week}</div>
+        <div class="week-info">
+          <div class="week-title">${week.title}</div>
+          <div class="week-sub">${week.sub}</div>
+        </div>
+        <div class="week-status">${done}/${week.days.length}</div>
+      </div>
+      <div class="week-body">
+        ${week.days.map(d=>{
+          const done = doneIds.has('dc_'+d.d);
+          return `
+          <div class="day-row${done?' done':''}" onclick="toggleDay(${d.d})">
+            <div class="day-num">${d.d}</div>
+            <div class="day-task">${d.t}</div>
+            <div class="day-cb">${done?'✓':''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // KonMari
+  document.getElementById('kmCards').innerHTML = KM_CARDS.map(c=>`
+    <div class="km-card">
+      <div class="km-num">${c.n}</div>
+      <div class="km-content">
+        <div class="km-card-title">${c.title}</div>
+        <div class="km-card-text">${c.text}</div>
+        <div class="km-card-tip">💡 ${c.tip}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleWeek(btn){
+  btn.nextElementSibling.classList.toggle('open');
+}
+
+function toggleDay(n){
+  const id = 'dc_'+n;
+  if(doneIds.has(id)) doneIds.delete(id);
+  else doneIds.add(id);
+  saveProgress();
+  renderDeclutter();
+}
+
+// ══════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════
+function getAllTaskIds(){
+  let all = [];
+  Object.values(TASKS).forEach(groups=>groups.forEach(g=>g.tasks.forEach(t=>all.push(t.id))));
+  ZONES.forEach(z=>[...z.quick,...z.deep].forEach(t=>all.push('z_'+z.id+'_'+t)));
+  DECLUTTER_WEEKS.forEach(w=>w.days.forEach(d=>all.push('dc_'+d.d)));
+  return all;
+}
+
+function updateProgressLabel(){
+  const all = getAllTaskIds();
+  const done = all.filter(id=>doneIds.has(id)).length;
+  const pct = Math.round(done/all.length*100);
+  document.getElementById('progLabel').textContent = pct+'%';
+}
+
+function openProgress(){
+  const cats = [
+    {label:'Ежедневная уборка',icon:'☀️',ids:TASKS.daily.flatMap(g=>g.tasks.map(t=>t.id))},
+    {label:'Еженедельная уборка',icon:'📅',ids:TASKS.weekly.flatMap(g=>g.tasks.map(t=>t.id))},
+    {label:'Ежемесячная уборка',icon:'🗓',ids:TASKS.monthly.flatMap(g=>g.tasks.map(t=>t.id))},
+    {label:'Уборка по зонам',icon:'🗂',ids:ZONES.flatMap(z=>[...z.quick,...z.deep].map(t=>'z_'+z.id+'_'+t))},
+    {label:'Расхламление 30 дней',icon:'✨',ids:DECLUTTER_WEEKS.flatMap(w=>w.days.map(d=>'dc_'+d.d))},
+  ];
+  const allIds = cats.flatMap(c=>c.ids);
+  const totalDone = allIds.filter(id=>doneIds.has(id)).length;
+  const pct = Math.round(totalDone/allIds.length*100);
+
+  document.getElementById('progPct').textContent = pct+'%';
+  document.getElementById('progRingFill').style.strokeDashoffset = 364*(1-pct/100);
+
+  document.getElementById('progCats').innerHTML = cats.map(c=>{
+    const done = c.ids.filter(id=>doneIds.has(id)).length;
+    const p = c.ids.length ? Math.round(done/c.ids.length*100) : 0;
+    return `
+    <div class="prog-cat">
+      <div class="prog-cat-icon">${c.icon}</div>
+      <div class="prog-cat-label">${c.label}</div>
+      <div class="prog-cat-bar"><div class="prog-cat-fill" style="width:${p}%"></div></div>
+      <div class="prog-cat-val">${done}/${c.ids.length}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeProgress(e){
+  if(!e || e.target === document.getElementById('modalOverlay'))
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+renderTasks();
+renderZones();
+renderTimerZonePicker();
+renderDeclutter();
+updateProgressLabel();
+// Set initial task count
+let _initTotal = 0;
+Object.values(TASKS).forEach(groups=>groups.forEach(g=>_initTotal+=g.tasks.length));
+document.getElementById('taskCount').textContent = _initTotal;
+</script>
+</body>
+</html>
+-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Чистый Дом — Система уборки</title>
 <style>
